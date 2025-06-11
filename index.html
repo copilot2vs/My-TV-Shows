@@ -911,46 +911,40 @@
 
     // --- Wrapped Data Access Functions (to use Firestore if logged in, else Local Storage) ---
     function getWatched() {
-        // Always use Firestore if logged in, otherwise use Local Storage
         if (userId && isAuthReady && firebaseInitialized) {
             return watchedData;
         }
-        return getWatchedLocal();
+        return {}; // No local fallback
     }
     function setWatched(watched) {
         if (userId && isAuthReady && firebaseInitialized && db) {
-            watchedData = watched; // update in-memory
+            watchedData = watched;
             setFirestoreDoc('watched', watched);
-        } else {
-            setWatchedLocal(watched);
         }
+        // else: do nothing, no local storage
     }
     function getProgress() {
         if (userId && isAuthReady && firebaseInitialized) {
             return progressData;
         }
-        return getProgressLocal();
+        return {};
     }
     function setProgress(progress) {
         if (userId && isAuthReady && firebaseInitialized && db) {
-            progressData = progress; // update in-memory
+            progressData = progress;
             setFirestoreDoc('progress', progress);
-        } else {
-            setProgressLocal(progress);
         }
     }
     function getLastWatched() {
         if (userId && isAuthReady && firebaseInitialized) {
             return lastWatchedData;
         }
-        return getLastWatchedLocal();
+        return null;
     }
     function setLastWatched(season, episode, seconds, finished) {
         if (userId && isAuthReady && firebaseInitialized && db) {
-            lastWatchedData = { season, episode, seconds, finished }; // update in-memory
+            lastWatchedData = { season, episode, seconds, finished };
             setFirestoreDoc('lastWatched', { season, episode, seconds, finished });
-        } else {
-            setLastWatchedLocal(season, episode, seconds, finished);
         }
     }
 
@@ -1000,65 +994,7 @@
 
     // --- Always migrate local data to Firestore on login (merge) ---
     async function migrateLocalDataToFirestore() {
-        if (!isAuthReady || !userId || !db || !firebaseInitialized) return;
-        const localWatched = getWatchedLocal();
-        const localProgress = getProgressLocal();
-        const localLastWatched = getLastWatchedLocal();
-
-        // Merge local data into Firestore, always prefer the most recent progress/lastWatched
-        if (Object.keys(localWatched).length > 0) {
-            try {
-                const firestoreWatched = await getFirestoreDoc('watched') || {};
-                const merged = { ...firestoreWatched };
-                for (const s in localWatched) {
-                    merged[s] = Array.from(new Set([...(firestoreWatched[s] || []), ...(localWatched[s] || [])]));
-                }
-                await setFirestoreDoc('watched', merged);
-                localStorage.removeItem(WATCHED_KEY);
-            } catch (error) {
-                console.error("Error migrating watched data:", error);
-            }
-        }
-        if (Object.keys(localProgress).length > 0) {
-            try {
-                const firestoreProgress = await getFirestoreDoc('progress') || {};
-                // Prefer the higher progress for each episode
-                const merged = { ...firestoreProgress };
-                for (const season in localProgress) {
-                    if (!merged[season]) merged[season] = {};
-                    for (const episode in localProgress[season]) {
-                        const localVal = localProgress[season][episode];
-                        const remoteVal = (firestoreProgress[season] && firestoreProgress[season][episode]) || 0;
-                        merged[season][episode] = Math.max(localVal, remoteVal);
-                    }
-                }
-                await setFirestoreDoc('progress', merged);
-                localStorage.removeItem(PROGRESS_KEY);
-            } catch (error) {
-                console.error("Error migrating progress data:", error);
-            }
-        }
-        if (localLastWatched) {
-            try {
-                // Always prefer the latest local lastWatched if it's more recent
-                const firestoreLastWatched = await getFirestoreDoc('lastWatched');
-                let shouldUpdate = true;
-                if (firestoreLastWatched && firestoreLastWatched.season && firestoreLastWatched.episode) {
-                    // If both exist, prefer the one with higher progress or more recent
-                    const localProgress = getProgressLocal();
-                    const remoteProgress = await getFirestoreDoc('progress') || {};
-                    const localSec = (localProgress[localLastWatched.season] && localProgress[localLastWatched.season][localLastWatched.episode]) || localLastWatched.seconds || 0;
-                    const remoteSec = (remoteProgress[firestoreLastWatched.season] && remoteProgress[firestoreLastWatched.season][firestoreLastWatched.episode]) || firestoreLastWatched.seconds || 0;
-                    shouldUpdate = localSec > remoteSec;
-                }
-                if (shouldUpdate) {
-                    await setFirestoreDoc('lastWatched', localLastWatched);
-                }
-                localStorage.removeItem(LAST_WATCHED_KEY);
-            } catch (error) {
-                console.error("Error migrating last watched data:", error);
-            }
-        }
+        // Do nothing: no migration, only cloud data is used
     }
 
     // --- Logout Functionality ---
@@ -1532,44 +1468,31 @@
         showCustomModal('Are you sure you want to clear all watched data and progress? This cannot be undone.', 'confirm', async (response) => {
             if (response) {
                 let clearedCloud = false;
-                if (userId && db && firebaseInitialized) { // Only clear Firestore if a user is logged in
-                    // Clear Firestore data for the current user
+                if (userId && db && firebaseInitialized) {
                     try {
-                        // Use __app_id if available, otherwise a static ID for local development
                         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
                         await setDoc(doc(db, `artifacts/${appId}/users/${userId}/watched/data`), { value: JSON.stringify({}) });
                         await setDoc(doc(db, `artifacts/${appId}/users/${userId}/progress/data`), { value: JSON.stringify({}) });
                         await setDoc(doc(db, `artifacts/${appId}/users/${userId}/lastWatched/data`), { value: JSON.stringify(null) });
-                        console.log("Firestore data cleared for user:", userId);
                         clearedCloud = true;
                     } catch (error) {
-                        console.error("Error clearing Firestore data:", error);
                         showCustomModal('Error clearing cloud data. Please try again.', 'alert');
-                        // Do not return here; proceed to clear local data even if cloud failed
                     }
                 }
-
-                // Always clear local storage data and cookies
-                localStorage.clear();
-                document.cookie.split(";").forEach(function(c) {
-                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-                });
-                console.log("Local storage and cookies cleared.");
-
-
+                watchedData = {};
+                progressData = {};
+                lastWatchedData = null;
                 isShowingAllEpisodes = false;
                 currentEpisodesDisplayed = EPISODES_DISPLAY_WINDOW_SIZE;
                 renderEpisodeSelect();
                 renderEpisodeList();
                 updateResumeLastButton();
                 document.getElementById('videoPlayer').src = '';
-                
                 if (clearedCloud) {
-                     showCustomModal('All data (local and cloud) has been cleared.', 'alert');
+                    showCustomModal('All cloud data has been cleared.', 'alert');
                 } else {
-                    showCustomModal('All local data has been cleared. Cloud data was not cleared as you were not logged in or Firebase was not initialized.', 'alert');
+                    showCustomModal('You must be logged in to clear cloud data.', 'alert');
                 }
-
                 if (window.watchTimer) clearInterval(window.watchTimer);
             }
         });
@@ -1630,9 +1553,6 @@
                         // Set up Firestore listeners *after* user is authenticated
                         setupFirestoreListeners();
 
-                        // Migrate local data to Firestore BEFORE loading Firestore data/UI
-                        await migrateLocalDataToFirestore();
-
                         // Load data from Firestore after listeners are set up and user is authenticated
                         // This will trigger snapshot listeners if data exists.
                         watchedData = await getFirestoreDoc('watched') || {};
@@ -1642,6 +1562,10 @@
                     } else {
                         // User is logged out or is anonymous (if anonymous sign-in was used)
                         userId = null;
+                        watchedData = {};
+                        progressData = {};
+                        lastWatchedData = null;
+                        document.getElementById('videoPlayer').src = '';
                         document.getElementById('loggedInUser').classList.remove('visible');
                         document.getElementById('loginBtn').style.display = 'inline-block';
                         document.getElementById('signupBtn').style.display = 'inline-block';
