@@ -1,0 +1,1711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My TV Shows</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark-charcoal: #1A202C;
+            --bg-medium-charcoal: #2D3748;
+            --bg-light-charcoal: #4A5568;
+            --blue-primary: #4299E1;
+            --blue-active-border: #3182CE;
+            --blue-highlight-bg: rgba(66, 153, 225, 0.2);
+            --blue-watched: #63B3ED;
+            --blue-to-cyan-glow: rgba(0, 191, 255, 1.0);
+            --red-primary: #E53E3E;
+            --white-off: #E2E8F0;
+            --white-icons: rgba(255, 255, 255, 0.8);
+            --grey-text: #A0AEC0;
+            --grey-buttons: #888;
+            --grey-border: #4A5568;
+            --shadow-light: rgba(0, 0, 0, 0.2);
+            --shadow-medium: rgba(0, 0, 0, 0.4);
+            --shadow-dark: rgba(0, 0, 0, 0.6);
+            --button-glow-light: 0 0 8px 4px rgba(0, 191, 255, 0.6);
+            --button-glow-hover: 0 0 12px 6px rgba(0, 191, 255, 0.9);
+        }
+
+        body {
+            background: var(--bg-dark-charcoal);
+            font-family: 'Roboto', sans-serif;
+            color: var(--white-off);
+            text-align: center;
+            padding: 20px;
+            line-height: 1.6;
+            margin: 0;
+            overflow-x: hidden;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--bg-medium-charcoal);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px var(--shadow-dark);
+            border: 1px solid var(--grey-border);
+            position: relative;
+            overflow: hidden;
+        }
+        h1 {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 700;
+            font-size: 2.5em;
+            color: var(--white-off);
+            letter-spacing: 1.5px;
+            margin-bottom: 24px;
+            text-shadow: 2px 2px 6px var(--shadow-light);
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            color: var(--blue-primary);
+            font-weight: 600;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 0.95em;
+        }
+        .select-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            max-width: 200px;
+        }
+
+        select {
+            padding: 10px 15px;
+            font-size: 1em;
+            border-radius: 8px;
+            border: 2px solid var(--blue-active-border);
+            background: var(--bg-dark-charcoal);
+            color: var(--white-off);
+            margin-bottom: 0;
+            outline: none;
+            box-shadow: 0 0 0 3px var(--blue-to-cyan-glow);
+            font-weight: 500;
+            width: 100%;
+            cursor: pointer;
+        }
+        select:hover, select:focus {
+            border-color: var(--blue-active-border);
+            box-shadow: 0 0 0 3px var(--blue-to-cyan-glow);
+            outline: none;
+        }
+
+        select option {
+            background-color: var(--bg-dark-charcoal);
+            color: var(--white-off);
+        }
+        select option.watched-option {
+            background-color: var(--blue-watched);
+            color: #fff;
+        }
+
+        .selection-row {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+            gap: 20px;
+        }
+
+        .selects-container-desktop {
+            display: flex;
+            gap: 20px;
+            align-items: flex-end;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+        }
+
+        .control-group label {
+            margin: 0;
+            display: inline-block;
+        }
+        .control-group select {
+            margin-bottom: 0;
+        }
+
+        .action-button {
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 700;
+            font-family: 'Open Sans', sans-serif;
+            background-color: var(--blue-primary);
+            color: #fff;
+            min-width: 150px;
+            display: block;
+            white-space: nowrap;
+            height: fit-content;
+            margin-bottom: 0;
+            align-self: flex-end;
+            box-shadow: var(--button-glow-light);
+            transform: translateY(0);
+            transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out, background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+        }
+        .action-button:hover, .action-button:active {
+            box-shadow: var(--button-glow-hover);
+            transform: translateY(-2px);
+            background-color: var(--blue-primary);
+            color: #fff;
+        }
+
+        #playBtn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        #playBtn .fas {
+            font-size: 1.2em;
+        }
+
+
+        #videoPlayer {
+            margin-top: 35px;
+            border: none;
+            border-radius: 12px;
+            width: 100%;
+            min-height: 480px;
+            height: 60vh;
+            background: #000;
+            box-shadow: 0 0 15px 8px var(--blue-to-cyan-glow);
+            margin-bottom: 25px;
+        }
+
+        #clearDataBtn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: var(--grey-text);
+            font-size: 22px;
+            cursor: pointer;
+            transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+            padding: 5px;
+            z-index: 10;
+        }
+        #clearDataBtn:hover {
+            color: var(--blue-primary);
+            transform: scale(1.1);
+        }
+        #clearDataBtn:active {
+            transform: scale(0.95);
+        }
+
+        #episodeListContainer {
+            margin-top: 30px;
+            padding: 20px;
+            background: var(--bg-dark-charcoal);
+            border-radius: 12px;
+            box-shadow: 0 0 15px 8px var(--blue-to-cyan-glow);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .episode-item-rm {
+            display: flex;
+            align-items: center;
+            background: var(--bg-medium-charcoal);
+            border-radius: 5px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 1px solid var(--grey-border);
+            box-shadow: none;
+            transform: none;
+            transition: background 0.2s ease-in-out, transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, border 0.2s ease-in-out;
+        }
+
+        .episode-item-rm.watched {
+            border: 1px solid var(--blue-watched);
+        }
+        .episode-item-rm.watched .episode-number-rm {
+            background-color: var(--blue-watched);
+        }
+        .episode-item-rm.active {
+            border: 2px solid var(--blue-active-border);
+            box-shadow: 0 4px 10px var(--shadow-medium), 0 0 10px 3px var(--blue-to-cyan-glow);
+            transform: translateY(-3px);
+            background: var(--blue-highlight-bg);
+        }
+
+        .episode-thumbnail-rm {
+            width: 160px;
+            height: 90px;
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+        }
+        .episode-thumbnail-rm img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            border-radius: 5px 0 0 5px;
+        }
+        .episode-play-icon-rm {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 30px;
+            color: var(--white-icons);
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+        }
+        .episode-item-rm:hover .episode-play-icon-rm {
+            opacity: 1;
+        }
+
+        .episode-info-rm {
+            flex-grow: 1;
+            padding: 10px 15px;
+            text-align: left;
+            overflow: hidden;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .episode-text-content {
+            flex-grow: 1;
+            padding-right: 10px;
+            overflow: hidden;
+        }
+        .episode-title-rm {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 700;
+            font-size: 1.15em;
+            margin-bottom: 5px;
+            color: var(--white-off);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .episode-description-rm {
+            font-family: 'Open Sans', sans-serif;
+            font-size: 0.9em;
+            color: var(--grey-text);
+            line-height: 1.4;
+            max-height: calc(0.9em * 1.4 * 2);
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            text-overflow: ellipsis;
+        }
+        .episode-description-rm.expanded {
+            max-height: fit-content;
+            -webkit-line-clamp: unset;
+        }
+        .see-more-btn {
+            background: none;
+            border: none;
+            color: var(--grey-buttons);
+            font-family: 'Open Sans', sans-serif;
+            font-size: 0.8em;
+            cursor: pointer;
+            text-decoration: underline;
+            margin-top: 5px;
+            display: block;
+            padding: 0;
+            transition: color 0.2s ease-in-out;
+        }
+        .see-more-btn:hover {
+            color: var(--white-off);
+        }
+        .episode-number-rm {
+            background-color: var(--blue-primary);
+            color: #fff;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.9em;
+            flex-shrink: 0;
+            font-family: 'Roboto', sans-serif;
+            border: 1px solid transparent;
+            transition: box-shadow 0.2s ease-in-out, border 0.2s ease-in-out;
+        }
+        .episode-number-rm:hover {
+            box-shadow: 0 0 8px 4px var(--blue-to-cyan-glow);
+            border: 1px solid var(--blue-to-cyan-glow);
+        }
+        .episode-item-rm.watched .episode-number-rm {
+            background-color: var(--blue-watched);
+        }
+        .episode-item-rm.watched .episode-number-rm:hover {
+            box-shadow: 0 0 8px 4px var(--red-primary);
+            border: 1px solid var(--red-primary);
+        }
+
+
+        .episode-action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 40px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        #loadMoreBtn, #loadAllBtn, #showLessBtn {
+            display: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        #loadMoreBtn .fas, #showLessBtn .fas {
+            font-size: 1.2em;
+        }
+
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--bg-medium-charcoal);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px var(--shadow-dark);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            color: var(--white-off);
+            border: 1px solid var(--grey-border);
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            color: var(--blue-primary);
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+
+        .modal-content p {
+            margin-bottom: 30px;
+            font-size: 1.1em;
+            line-height: 1.5;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .modal-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: 'Open Sans', sans-serif;
+            transition: background-color 0.2s ease-in-out;
+        }
+
+        .modal-btn.confirm-btn {
+            background-color: var(--red-primary);
+            color: #fff;
+        }
+
+        .modal-btn.confirm-btn:hover {
+            background-color: var(--red-primary);
+        }
+
+        .modal-btn.cancel-btn {
+            background-color: var(--grey-border);
+            color: var(--white-off);
+        }
+
+        .modal-btn.cancel-btn:hover {
+            background-color: var(--bg-light-charcoal);
+        }
+
+        /* Styles for login/signup/logout buttons */
+        .auth-buttons {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .auth-buttons .action-button {
+            padding: 10px 15px;
+            font-size: 0.9em;
+            min-width: unset;
+            height: auto;
+            align-self: flex-start; /* Align to the start of the flex container */
+        }
+
+        /* Content area that shows only when logged in */
+        .content-area {
+            display: block; /* Always visible for guest viewing */
+        }
+
+        /* Styles for logged-in user display */
+        #loggedInUser {
+            position: absolute;
+            top: 20px;
+            left: 20px; /* Position to the right of login/signup */
+            color: var(--white-off);
+            font-size: 0.9em;
+            font-family: 'Open Sans', sans-serif;
+            z-index: 10;
+            display: none; /* Hidden by default */
+            padding: 10px 15px;
+            background-color: var(--bg-light-charcoal);
+            border-radius: 25px;
+            box-shadow: 0 0 8px 4px rgba(0, 191, 255, 0.3);
+        }
+        #loggedInUser.visible {
+            display: block;
+        }
+
+
+        @media (min-width: 769px) {
+            .selection-row {
+                flex-wrap: nowrap;
+                justify-content: center;
+                align-items: flex-end;
+                gap: 20px;
+            }
+            .selects-container-desktop {
+                display: flex;
+                gap: 20px;
+                align-items: flex-end;
+            }
+            .control-group {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+            .control-group label {
+                margin: 0;
+                white-space: nowrap;
+            }
+            .selection-row .action-button {
+                margin-top: 0;
+            }
+            .select-wrapper {
+                min-width: 150px; /* Same min-width as action buttons */
+                width: 150px; /* Fixed width to match visual size */
+                height: 52px; /* Fixed height to match visual size of action buttons */
+            }
+            select {
+                padding: 15px 15px; /* Match button vertical padding */
+                font-size: 1.1em; /* Match button font size */
+                border-radius: 25px; /* Match button border-radius */
+                height: 100%; /* Make select fill wrapper height */
+            }
+        }
+
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 15px;
+                margin: 10px;
+            }
+            h1 {
+                font-size: 1.8em;
+                margin-bottom: 15px;
+            }
+            label {
+                font-size: 0.85em;
+            }
+            select {
+                padding: 8px 12px;
+                font-size: 0.9em;
+            }
+            .action-button {
+                padding: 12px 20px;
+                font-size: 1em;
+                min-width: unset;
+                width: 100%;
+            }
+            .selection-row {
+                flex-direction: column;
+                align-items: center;
+                gap: 0;
+            }
+            .selects-container-desktop {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                gap: 10px;
+                width: 100%;
+                margin-bottom: 35px;
+            }
+            .control-group {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 5px;
+                width: calc(50% - 5px);
+                flex-shrink: 0;
+            }
+            .control-group label {
+                width: auto;
+                text-align: center;
+                margin: 0;
+            }
+            .select-wrapper {
+                flex-grow: 1;
+                max-width: unset;
+            }
+            #playBtn {
+                margin-top: 0;
+                margin-bottom: 15px;
+                width: 100%;
+            }
+            #resumeLastBtn {
+                margin-top: 0;
+                width: 100%;
+            }
+
+
+            #videoPlayer {
+                margin-top: 20px;
+                min-height: 200px;
+                height: 40vh;
+                margin-bottom: 30px;
+            }
+
+            #clearDataBtn {
+                top: 10px;
+                right: 10px;
+                font-size: 18px;
+            }
+
+            #episodeListContainer {
+                margin-top: 40px;
+                padding: 10px;
+                gap: 10px;
+            }
+
+            .episode-item-rm {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 10px;
+            }
+            .episode-thumbnail-rm {
+                width: 100%;
+                height: 180px;
+                border-radius: 5px 5px 0 0;
+                margin-bottom: 10px;
+            }
+            .episode-thumbnail-rm img {
+                width: 100%;
+                height: 100%;
+                object-fit: fill;
+                border-radius: 5px 5px 0 0;
+            }
+            .episode-info-rm {
+                width: 100%;
+                padding: 0;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .episode-text-content {
+                flex-grow: 1;
+                padding-right: 10px;
+                text-align: left; /* Ensure left alignment */
+                display: flex; /* Use flex to align children vertically */
+                align-items: center; /* Vertically center the title */
+                min-height: 40px; /* Give it a minimum height to ensure vertical centering works */
+            }
+            .episode-title-rm {
+                font-size: 1em;
+                white-space: normal;
+                overflow: visible;
+                text-overflow: unset;
+                margin-bottom: 0; /* Remove extra margin for better vertical centering */
+            }
+            .episode-description-rm {
+                display: none;
+                line-height: 1.4;
+                max-height: unset;
+                -webkit-line-clamp: unset;
+                overflow: visible;
+                text-overflow: unset;
+                white-space: normal;
+                word-break: break-word;
+            }
+            .see-more-btn {
+                display: none !important;
+            }
+            .episode-number-rm {
+                position: static;
+                margin-left: auto;
+                margin-top: 0;
+                flex-shrink: 0;
+                align-self: center;
+            }
+
+            .episode-action-buttons {
+                flex-direction: column;
+                gap: 10px;
+                margin-top: 40px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+            .container {
+                padding: 10px;
+                margin: 5px;
+            }
+            h1 {
+                font-size: 1.5em;
+                margin-bottom: 10px;
+            }
+            #videoPlayer {
+                min-height: 180px;
+                height: 35vh;
+            }
+            .episode-thumbnail-rm {
+                height: 150px;
+            }
+            .episode-title-rm {
+                font-size: 0.9em;
+            }
+            .episode-description-rm {
+                font-size: 0.75em;
+            }
+            .modal-content {
+                padding: 20px;
+            }
+            .modal-content h3 {
+                font-size: 1.2em;
+            }
+            .modal-content p {
+                font-size: 0.9em;
+            }
+            .modal-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .modal-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Authentication buttons and display -->
+    <div class="auth-buttons">
+        <a href="login.html" id="loginBtn" class="action-button">Login</a>
+        <a href="login.html?mode=signup" id="signupBtn" class="action-button">Sign Up</a>
+        <button id="logoutBtn" class="action-button" style="display: none;">Logout</button>
+    </div>
+    <div id="loggedInUser" style="display: none;"></div>
+
+    <button id="clearDataBtn" title="Clear all data"><i class="fas fa-trash-alt"></i></button>
+    <h1>My TV Shows</h1>
+
+    <!-- Main content area, always visible -->
+    <div id="contentArea" class="content-area">
+        <iframe id="videoPlayer" src="" frameborder="0" allowfullscreen></iframe>
+
+        <div class="selection-row">
+            <div class="selects-container-desktop">
+                <div class="control-group">
+                    <label for="seasonSelect">Season:</label>
+                    <div class="select-wrapper">
+                        <select id="seasonSelect"></select>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="episodeSelect">Episode:</label>
+                    <div class="select-wrapper">
+                        <select id="episodeSelect"></select>
+                    </div>
+                </div>
+            </div>
+            <button id="playBtn" class="action-button" onclick="playSelectedEpisode()">
+                <i class="fas fa-play-circle"></i> Play
+            </button>
+            <button id="resumeLastBtn" class="action-button">
+                Continue Watching
+            </button>
+        </div>
+
+        <div id="episodeListContainer"></div>
+        <div class="episode-action-buttons">
+            <button id="loadMoreBtn" class="action-button">
+                <i class="fas fa-plus-circle"></i> Load More
+            </button>
+            <button id="loadAllBtn" class="action-button">
+                Load All Episodes
+            </button>
+            <button id="showLessBtn" class="action-button">
+                <i class="fas fa-minus-circle"></i> Show Less
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="customModalOverlay" class="modal-overlay">
+    <div class="modal-content">
+        <h3 id="modalTitle"></h3>
+        <p id="modalMessage"></p>
+        <div class="modal-buttons">
+            <button id="modalConfirmBtn" class="modal-btn confirm-btn" style="display: none;">OK</button>
+            <button id="modalCancelBtn" class="modal-btn cancel-btn" style="display: none;">Cancel</button>
+            <button id="modalCloseBtn" class="modal-btn cancel-btn" style="display: none;">Close</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    // Firebase SDK imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInWithCustomToken, signInAnonymously, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, query, where, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // --- Global Variables (declared at the top to avoid 'access before initialization' errors) ---
+    let app, db, auth;
+    let userId = null;
+    let isAuthReady = false; // Flag to indicate if auth state has been checked
+    let firebaseInitialized = false; // Flag to indicate if firebase has been initialized successfully
+
+    // Firestore data storage (will be updated by listeners)
+    let watchedData = {};
+    let progressData = {};
+    let lastWatchedData = null;
+
+    // Local Storage Fallback Keys
+    const WATCHED_KEY = 'americanDadWatched10min';
+    const PROGRESS_KEY = 'americanDadEpisodeProgress';
+    const LAST_WATCHED_KEY = 'americanDadLastWatched';
+
+    // TMDB and Episode Data Constants
+    const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/160x90/1A1A1A/FFFFFF?text=AMERICAN+DAD';
+    const EPISODES_DISPLAY_WINDOW_SIZE = 7;
+    const TMDB_API_KEY = 'd62d816a3f48ed18c1dc5e157f4d73b2'; // REMEMBER TO REPLACE WITH YOUR ACTUAL KEY
+    const TMDB_READ_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkNjJkODE2YTNmNDhlZDE4YzFkYzVlMTU3ZjRkNzNiMiIsIm5iZiI6MTc0OTYyMjI0MS4wMjQsInN1YiI6IjY4NDkxZGUxMDQ2NzYwZGI4YTlmNTg1ZCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.UXLSaRBtR2aOvUObbrT3C4ctJcNG6MXTDjh1gu8y2Ks'; // REMEMBER TO REPLACE WITH YOUR ACTUAL TOKEN
+    const TMDB_SHOW_ID = 1433; // American Dad show ID
+
+    let episodeData = {};
+    let totalSeasons = 20; // Default, will be updated by TMDB fetch
+
+    let currentSeason = 1;
+    let currentEpisodesDisplayed = EPISODES_DISPLAY_WINDOW_SIZE;
+    let isShowingAllEpisodes = false;
+
+    // --- Custom Modal Function ---
+    function showCustomModal(message, type = 'alert', onConfirm = null) {
+        const modalOverlay = document.getElementById('customModalOverlay');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
+
+        modalConfirmBtn.style.display = 'none';
+        modalCancelBtn.style.display = 'none';
+        modalCloseBtn.style.display = 'none';
+        modalConfirmBtn.onclick = null;
+        modalCancelBtn.onclick = null;
+        modalCloseBtn.onclick = null;
+
+        modalMessage.textContent = message;
+
+        if (type === 'confirm') {
+            modalTitle.textContent = 'Confirm Action';
+            modalConfirmBtn.textContent = 'Confirm';
+            modalConfirmBtn.style.display = 'inline-block';
+            modalCancelBtn.textContent = 'Cancel';
+            modalCancelBtn.style.display = 'inline-block';
+
+            modalConfirmBtn.onclick = () => {
+                modalOverlay.style.display = 'none';
+                if (onConfirm) onConfirm(true);
+            };
+            modalCancelBtn.onclick = () => {
+                modalOverlay.style.display = 'none';
+                if (onConfirm) onConfirm(false);
+            };
+        } else {
+            modalTitle.textContent = 'Notification';
+            modalCloseBtn.textContent = 'Close';
+            modalCloseBtn.style.display = 'inline-block';
+            modalCloseBtn.onclick = () => {
+                modalOverlay.style.display = 'none';
+            };
+        }
+        modalOverlay.style.display = 'flex';
+    }
+
+
+    // --- Firebase Data Functions ---
+    async function getFirestoreDoc(collectionName) {
+        if (!userId || !db || !firebaseInitialized) {
+            console.warn(`Attempted to get Firestore doc '${collectionName}' without userId or db initialized or firebase not ready.`);
+            return null;
+        }
+        const appId = 'default-app-id'; // For local testing, can be a static ID
+        const docRef = doc(db, `artifacts/${appId}/users/${userId}/${collectionName}/data`);
+        try {
+            const docSnap = await getDoc(docRef);
+            return docSnap.exists() ? JSON.parse(docSnap.data().value) : null;
+        } catch (e) {
+            console.error(`Error fetching Firestore doc '${collectionName}':`, e);
+            return null;
+        }
+    }
+
+    async function setFirestoreDoc(collectionName, data) {
+        if (!userId || !db || !firebaseInitialized) {
+            console.warn(`Attempted to set Firestore doc '${collectionName}' without userId or db initialized or firebase not ready.`);
+            return;
+        }
+        const appId = 'default-app-id'; // For local testing, can be a static ID
+        const docRef = doc(db, `artifacts/${appId}/users/${userId}/${collectionName}/data`);
+        try {
+            await setDoc(docRef, { value: JSON.stringify(data) }, { merge: true });
+        } catch (e) {
+            console.error(`Error setting Firestore doc '${collectionName}':`, e);
+        }
+    }
+
+    function setupFirestoreListeners() {
+        if (!db || !userId || !firebaseInitialized) {
+            console.log("Firestore not initialized, user not logged in, or Firebase not ready, skipping listeners.");
+            return;
+        }
+
+        const appId = 'default-app-id'; // For local testing, can be a static ID
+        const watchedDocRef = doc(db, `artifacts/${appId}/users/${userId}/watched/data`);
+        const progressDocRef = doc(db, `artifacts/${appId}/users/${userId}/progress/data`);
+        const lastWatchedDocRef = doc(db, `artifacts/${appId}/users/${userId}/lastWatched/data`);
+
+        onSnapshot(watchedDocRef, (docSnap) => {
+            if (docSnap.exists()) {
+                watchedData = JSON.parse(docSnap.data().value);
+                console.log("Watched data updated from Firestore:", watchedData);
+            } else {
+                watchedData = {};
+                console.log("Watched data cleared in Firestore.");
+            }
+            renderEpisodeSelect();
+            renderEpisodeList();
+        }, (error) => console.error("Error watching watched data:", error));
+
+        onSnapshot(progressDocRef, (docSnap) => {
+            if (docSnap.exists()) {
+                progressData = JSON.parse(docSnap.data().value);
+                console.log("Progress data updated from Firestore:", progressData);
+            } else {
+                progressData = {};
+                console.log("Progress data cleared in Firestore.");
+            }
+            // No direct UI update needed here, as playEpisode will read it
+        }, (error) => console.error("Error watching progress data:", error));
+
+        onSnapshot(lastWatchedDocRef, (docSnap) => {
+            if (docSnap.exists()) {
+                lastWatchedData = JSON.parse(docSnap.data().value);
+                console.log("Last watched data updated from Firestore:", lastWatchedData);
+            } else {
+                lastWatchedData = null;
+                console.log("Last watched data cleared in Firestore.");
+            }
+            updateResumeLastButton();
+        }, (error) => console.error("Error watching last watched data:", error));
+    }
+
+
+    async function migrateLocalDataToFirestore() {
+        if (!isAuthReady || !userId || !db || !firebaseInitialized) return; // Only migrate after auth is ready and user is logged in
+
+        const localWatched = getWatchedLocal();
+        const localProgress = getProgressLocal();
+        const localLastWatched = getLastWatchedLocal();
+
+        if (Object.keys(localWatched).length > 0) {
+            try {
+                const firestoreWatched = await getFirestoreDoc('watched');
+                if (!firestoreWatched || Object.keys(firestoreWatched).length === 0) {
+                    await setFirestoreDoc('watched', localWatched);
+                    console.log("Migrated local watched data to Firestore.");
+                    localStorage.removeItem(WATCHED_KEY); // Clear local after migration
+                }
+            } catch (error) {
+                console.error("Error migrating watched data:", error);
+            }
+        }
+
+        if (Object.keys(localProgress).length > 0) {
+            try {
+                const firestoreProgress = await getFirestoreDoc('progress');
+                if (!firestoreProgress || Object.keys(firestoreProgress).length === 0) {
+                    await setFirestoreDoc('progress', localProgress);
+                    console.log("Migrated local progress data to Firestore.");
+                    localStorage.removeItem(PROGRESS_KEY); // Clear local after migration
+                }
+            } catch (error) {
+                console.error("Error migrating progress data:", error);
+            }
+        }
+
+        if (localLastWatched) {
+            try {
+                const firestoreLastWatched = await getFirestoreDoc('lastWatched');
+                if (!firestoreLastWatched) {
+                    await setFirestoreDoc('lastWatched', localLastWatched);
+                    console.log("Migrated local last watched data to Firestore.");
+                    localStorage.removeItem(LAST_WATCHED_KEY); // Clear local after migration
+                }
+            } catch (error) {
+                console.error("Error migrating last watched data:", error);
+            }
+        }
+    }
+
+
+    // --- Local Storage Fallback Functions (used if not logged in or Firebase fails) ---
+    function getWatchedLocal() {
+        try {
+            return JSON.parse(localStorage.getItem(WATCHED_KEY)) || {};
+        } catch (e) {
+            console.error("Error parsing local watched data:", e);
+            return {};
+        }
+    }
+    function setWatchedLocal(watched) {
+        localStorage.setItem(WATCHED_KEY, JSON.stringify(watched));
+    }
+    function getProgressLocal() {
+        try {
+            return JSON.parse(localStorage.getItem(PROGRESS_KEY)) || {};
+        } catch (e) {
+            console.error("Error parsing local progress data:", e);
+            return {};
+        }
+    }
+    function setProgressLocal(progress) {
+        localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
+    }
+    function getLastWatchedLocal() {
+        try {
+            return JSON.parse(localStorage.getItem(LAST_WATCHED_KEY)) || null;
+        } catch (e) {
+            console.error("Error parsing local last watched data:", e);
+            return null;
+        }
+    }
+    function setLastWatchedLocal(season, episode, seconds, finished) {
+        localStorage.setItem(LAST_WATCHED_KEY, JSON.stringify({
+            season, episode, seconds, finished
+        }));
+    }
+
+
+    // --- Wrapped Data Access Functions (to use Firestore if logged in, else Local Storage) ---
+    function getWatched() {
+        // Use Firestore if logged in AND Firebase is initialized, otherwise use Local Storage
+        if (userId && isAuthReady && firebaseInitialized) return watchedData;
+        return getWatchedLocal();
+    }
+    function setWatched(watched) {
+        // Use Firestore if logged in AND Firebase is initialized, otherwise use Local Storage
+        if (userId && isAuthReady && firebaseInitialized && db) {
+            setFirestoreDoc('watched', watched);
+        } else {
+            setWatchedLocal(watched);
+        }
+    }
+    function getProgress() {
+        // Use Firestore if logged in AND Firebase is initialized, otherwise use Local Storage
+        if (userId && isAuthReady && firebaseInitialized) return progressData;
+        return getProgressLocal();
+    }
+    function setProgress(progress) {
+        // Use Firestore if logged in AND Firebase is initialized, otherwise use Local Storage
+        if (userId && isAuthReady && firebaseInitialized && db) {
+            setFirestoreDoc('progress', progress);
+        } else {
+            setProgressLocal(progress);
+        }
+    }
+    function getLastWatched() {
+        // Use Firestore if logged in AND Firebase is initialized, otherwise use Local Storage
+        if (userId && isAuthReady && firebaseInitialized) return lastWatchedData;
+        return getLastWatchedLocal();
+    }
+    function setLastWatched(season, episode, seconds, finished) {
+        // Use Firestore if logged in AND Firebase is initialized, otherwise use Local Storage
+        if (userId && isAuthReady && firebaseInitialized && db) {
+            setFirestoreDoc('lastWatched', { season, episode, seconds, finished });
+        } else {
+            setLastWatchedLocal(season, episode, seconds, finished);
+        }
+    }
+
+
+    // --- Logout Functionality ---
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+        if (auth) {
+            try {
+                await signOut(auth);
+                showCustomModal('You have been logged out.', 'alert');
+            } catch (error) {
+                console.error("Error logging out:", error);
+                showCustomModal('Error logging out. Please try again.', 'alert');
+            }
+        } else {
+            showCustomModal('Not logged in.', 'alert');
+        }
+    });
+
+    // --- TMDB API Interaction for Episode Data ---
+    async function fetchEpisodeData() {
+        try {
+            const showDetailsResponse = await fetch(`https://api.themoviedb.org/3/tv/${TMDB_SHOW_ID}`, {
+                headers: { 'Authorization': `Bearer ${TMDB_READ_TOKEN}`, 'accept': 'application/json' }
+            });
+            if (!showDetailsResponse.ok) {
+                throw new Error(`Failed to fetch show details: ${showDetailsResponse.statusText}`);
+            }
+            const showDetails = await showDetailsResponse.json();
+            totalSeasons = showDetails.number_of_seasons;
+
+            const seasonSelect = document.getElementById('seasonSelect');
+            seasonSelect.innerHTML = '';
+            for (let s = 1; s <= totalSeasons; s++) {
+                const option = document.createElement('option');
+                option.value = s;
+                option.textContent = `Season ${s}`;
+                seasonSelect.appendChild(option);
+            }
+
+            const seasonPromises = [];
+            for (let s = 1; s <= totalSeasons; s++) {
+                seasonPromises.push(
+                    fetch(`https://api.themoviedb.org/3/tv/${TMDB_SHOW_ID}/season/${s}`, {
+                        headers: { 'Authorization': `Bearer ${TMDB_READ_TOKEN}`, 'accept': 'application/json' }
+                    }).then(res => res.ok ? res.json() : null)
+                );
+            }
+            const seasons = await Promise.all(seasonPromises);
+
+            episodeData = {};
+            seasons.forEach((seasonObj) => {
+                const seasonNum = seasonObj?.season_number?.toString();
+                if (seasonNum && seasonObj.episodes) {
+                    episodeData[seasonNum] = {};
+                    seasonObj.episodes.forEach(ep => {
+                        episodeData[seasonNum][ep.episode_number.toString()] = {
+                            title: ep.name || `Episode ${ep.episode_number}`,
+                            description: ep.overview || 'Description not available.',
+                            image: ep.still_path ? `https://image.tmdb.org/t/p/w300${ep.still_path}` : PLACEHOLDER_IMAGE
+                        };
+                    });
+                }
+            });
+
+            // Fallback for seasons with no episodes or to ensure a minimum number of episodes
+            for (let s = 1; s <= totalSeasons; s++) {
+                const seasonStr = s.toString();
+                if (!episodeData[seasonStr]) {
+                    episodeData[seasonStr] = {};
+                }
+                const numEpisodesInSeason = Object.keys(episodeData[seasonStr]).length > 0 ? Object.keys(episodeData[seasonStr]).length : 22;
+                for (let e = 1; e <= numEpisodesInSeason; e++) {
+                    const episodeStr = e.toString();
+                    if (!episodeData[seasonStr][episodeStr]) {
+                        episodeData[seasonStr][episodeStr] = {
+                            title: `Season ${s}, Episode ${e}`,
+                            description: `This is a generic description for Season ${s}, Episode ${e}.`,
+                            image: PLACEHOLDER_IMAGE
+                        };
+                    }
+                }
+            }
+
+            currentSeason = document.getElementById('seasonSelect').value;
+            renderEpisodeSelect();
+            renderEpisodeList();
+            updateResumeLastButton();
+        } catch (e) {
+            console.error('Error loading episode data from TMDB API:', e);
+            // Populate dropdowns with default values even if TMDB fails
+            const seasonSelect = document.getElementById('seasonSelect');
+            if (seasonSelect.options.length === 0) {
+                for (let s = 1; s <= totalSeasons; s++) {
+                    const option = document.createElement('option');
+                    option.value = s;
+                    option.textContent = `Season ${s}`;
+                    seasonSelect.appendChild(option);
+                }
+            }
+            for (let s = 1; s <= totalSeasons; s++) {
+                const seasonStr = s.toString();
+                if (!episodeData[seasonStr]) {
+                    episodeData[seasonStr] = {};
+                }
+                const numEpisodesInSeason = Object.keys(episodeData[seasonStr]).length > 0 ? Object.keys(episodeData[seasonStr]).length : 22;
+                for (let e = 1; e <= numEpisodesInSeason; e++) {
+                    const episodeStr = e.toString();
+                    if (!episodeData[seasonStr][episodeStr]) {
+                        episodeData[seasonStr][episodeStr] = {
+                            title: `Season ${s}, Episode ${e}`,
+                            description: `This is a generic description for Season ${s}, Episode ${e}.`,
+                            image: PLACEHOLDER_IMAGE
+                        };
+                    }
+                }
+            }
+            currentSeason = document.getElementById('seasonSelect').value;
+            renderEpisodeSelect();
+            renderEpisodeList();
+            updateResumeLastButton();
+        }
+    }
+
+
+    function renderEpisodeSelect() {
+        const season = document.getElementById('seasonSelect').value;
+        const episodeSelect = document.getElementById('episodeSelect');
+        episodeSelect.innerHTML = '';
+
+        const episodesInCurrentSeason = episodeData[season] ? Object.keys(episodeData[season]).length : 0;
+        const numEpisodesToRender = episodesInCurrentSeason > 0 ? episodesInCurrentSeason : 22;
+
+        for (let i = 1; i <= numEpisodesToRender; i++) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = `Episode ${i}`;
+            episodeSelect.appendChild(option);
+        }
+        updateEpisodeSelectColor();
+    }
+
+    function updateEpisodeSelectColor() {
+        const season = document.getElementById('seasonSelect').value;
+        const watched = getWatched();
+        const episodeSelect = document.getElementById('episodeSelect');
+
+        for (let i = 0; i < episodeSelect.options.length; i++) {
+            episodeSelect.options[i].classList.remove('watched-option');
+            episodeSelect.options[i].style.background = '';
+            episodeSelect.options[i].style.color = '';
+        }
+
+        for (let i = 0; i < episodeSelect.options.length; i++) {
+            const opt = episodeSelect.options[i];
+            const episodeNum = opt.value;
+            const isWatched = watched[season] && watched[season].includes(episodeNum.toString());
+
+            if (isWatched) {
+                opt.classList.add('watched-option');
+            }
+        }
+
+        const selectedOption = episodeSelect.options[episodeSelect.selectedIndex];
+        if (selectedOption && selectedOption.classList.contains('watched-option')) {
+            episodeSelect.style.background = 'var(--blue-watched)';
+            episodeSelect.style.color = '#fff';
+        } else {
+            episodeSelect.style.background = 'var(--bg-dark-charcoal)';
+            episodeSelect.style.color = 'var(--white-off)';
+        }
+    }
+
+    function renderEpisodeList() {
+        const season = document.getElementById('seasonSelect').value;
+        const watched = getWatched();
+        const episodeListContainer = document.getElementById('episodeListContainer');
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
+        const loadAllBtn = document.getElementById('loadAllBtn');
+        const showLessBtn = document.getElementById('showLessBtn');
+        episodeListContainer.innerHTML = '';
+
+        const episodesInCurrentSeason = episodeData[season] ? Object.keys(episodeData[season]).length : 0;
+        const totalEpisodesForSeason = episodesInCurrentSeason > 0 ? episodesInCurrentSeason : 22;
+
+        let renderEnd;
+
+        if (isShowingAllEpisodes) {
+            renderEnd = totalEpisodesForSeason;
+            currentEpisodesDisplayed = totalEpisodesForSeason;
+        } else {
+            renderEnd = currentEpisodesDisplayed;
+            if (renderEnd > totalEpisodesForSeason) {
+                renderEnd = totalEpisodesForSeason;
+            }
+        }
+
+        for (let i = 1; i <= renderEnd; i++) {
+            const isWatched = watched[season] && watched[season].includes(i.toString());
+            const episodeInfo = episodeData[season] ? episodeData[season][i.toString()] : null;
+            const descriptionText = episodeInfo?.description || 'Description not available.';
+
+            const episodeItem = document.createElement('div');
+            episodeItem.classList.add('episode-item-rm');
+            episodeItem.onclick = () => playEpisode(undefined, season, i.toString(), true);
+            if (isWatched) {
+                episodeItem.classList.add('watched');
+            }
+            if (window.currentSeason === season && window.currentEpisode === i.toString()) {
+                episodeItem.classList.add('active');
+            }
+            episodeItem.dataset.season = season;
+            episodeItem.dataset.episode = i;
+
+            episodeItem.innerHTML = `
+                <div class="episode-thumbnail-rm">
+                    <img src="${episodeInfo && episodeInfo.image ? episodeInfo.image : PLACEHOLDER_IMAGE}" alt="Episode Thumbnail" onerror="this.onerror=null; this.src='${PLACEHOLDER_IMAGE}';">
+                    <i class="fas fa-play-circle episode-play-icon-rm"></i>
+                </div>
+                <div class="episode-info-rm">
+                    <div class="episode-text-content">
+                        <div class="episode-title-rm">${episodeInfo ? episodeInfo.title : `Episode ${i}`}</div>
+                        <div class="episode-description-rm" data-full-description="${descriptionText}">
+                            ${descriptionText}
+                        </div>
+                        <button class="see-more-btn" style="display: none;">See More</button>
+                    </div>
+                    <span class="episode-number-rm">${i}</span>
+                </div>
+            `;
+            episodeListContainer.appendChild(episodeItem);
+
+            const descriptionDiv = episodeItem.querySelector('.episode-description-rm');
+            const seeMoreBtn = episodeItem.querySelector('.see-more-btn');
+
+            descriptionDiv.style.webkitLineClamp = 'unset';
+            const fullHeight = descriptionDiv.scrollHeight;
+            const isMobile = window.matchMedia("(max-width: 768px)").matches;
+            if (!isMobile) {
+                descriptionDiv.style.webkitLineClamp = '2';
+            } else {
+                descriptionDiv.style.maxHeight = 'unset';
+                descriptionDiv.style.overflow = 'visible';
+                descriptionDiv.style.textOverflow = 'unset';
+            }
+
+
+            const currentComputedHeight = descriptionDiv.clientHeight;
+
+            if (!isMobile && (fullHeight > currentComputedHeight + 2)) {
+                seeMoreBtn.style.display = 'block';
+                seeMoreBtn.textContent = 'See More';
+                seeMoreBtn.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    if (descriptionDiv.classList.contains('expanded')) {
+                        descriptionDiv.classList.remove('expanded');
+                        seeMoreBtn.textContent = 'See More';
+                    } else {
+                        descriptionDiv.classList.add('expanded');
+                        seeMoreBtn.textContent = 'See Less';
+                    }
+                });
+            } else {
+                seeMoreBtn.style.display = 'none';
+                descriptionDiv.classList.remove('expanded');
+            }
+        }
+
+        if (currentEpisodesDisplayed < totalEpisodesForSeason) {
+            loadMoreBtn.style.display = 'flex';
+            loadAllBtn.style.display = 'flex';
+            showLessBtn.style.display = 'none';
+        } else {
+            loadMoreBtn.style.display = 'none';
+            loadAllBtn.style.display = 'none';
+            if (totalEpisodesForSeason > EPISODES_DISPLAY_WINDOW_SIZE) {
+                 showLessBtn.style.display = 'flex';
+            } else {
+                 showLessBtn.style.display = 'none';
+            }
+        }
+    }
+
+    function loadMoreEpisodes() {
+        isShowingAllEpisodes = false;
+        const season = document.getElementById('seasonSelect').value;
+        const episodesInCurrentSeason = episodeData[season] ? Object.keys(episodeData[season]).length : 0;
+        const totalEpisodesForSeason = episodesInCurrentSeason > 0 ? episodesInCurrentSeason : 22;
+
+        currentEpisodesDisplayed += EPISODES_DISPLAY_WINDOW_SIZE;
+        if (currentEpisodesDisplayed > totalEpisodesForSeason) {
+            currentEpisodesDisplayed = totalEpisodesForSeason;
+        }
+        renderEpisodeList();
+    }
+
+    function loadAllEpisodes() {
+        isShowingAllEpisodes = true;
+        renderEpisodeList();
+    }
+
+    function showLessEpisodes() {
+        isShowingAllEpisodes = false;
+        currentEpisodesDisplayed = EPISODES_DISPLAY_WINDOW_SIZE;
+        renderEpisodeList();
+    }
+
+
+    function playEpisode(forcedStartTime, forcedSeason, forcedEpisode, shouldScrollList = false) {
+        const season = forcedSeason || document.getElementById('seasonSelect').value;
+        const episode = forcedEpisode || document.getElementById('episodeSelect').value;
+
+        if (!season || !episode) {
+            console.warn('Cannot play episode: Season or Episode not selected.');
+            showCustomModal('Please select a season and episode to play.', 'alert');
+            return;
+        }
+
+        if (window.currentSeason !== season || window.currentEpisode !== episode) {
+            window.currentSeason = season;
+            window.currentEpisode = episode;
+        }
+
+        if (shouldScrollList) {
+            document.getElementById('seasonSelect').value = season;
+            renderEpisodeSelect();
+            document.getElementById('episodeSelect').value = episode;
+            updateEpisodeSelectColor();
+            isShowingAllEpisodes = false;
+            currentEpisodesDisplayed = EPISODES_DISPLAY_WINDOW_SIZE;
+        }
+
+        renderEpisodeList();
+
+        if (shouldScrollList) {
+            const activeElement = document.querySelector(`.episode-item-rm.active`);
+            if (activeElement) {
+                setTimeout(() => {
+                    activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+            }
+        }
+
+        const videoPlayer = document.getElementById('videoPlayer');
+        const progress = getProgress(); // Use the wrapped function
+        let startTime = 0;
+
+        if (typeof forcedStartTime === 'number') {
+            startTime = forcedStartTime;
+        } else if (progress[season] && progress[season][episode]) {
+            startTime = progress[season][episode];
+        }
+
+        let url = `https://vidfast.pro/tv/1433/${season}/${episode}?autoPlay=true&nextButton=true&autoNext=true&theme=#1e90ff`;
+        if (startTime > 0) {
+            url += `#t=${Math.floor(startTime)}`;
+        }
+        videoPlayer.src = url;
+
+        if (window.watchTimer) clearInterval(window.watchTimer);
+        window.watchStart = Date.now();
+        window.currentStartTime = startTime;
+
+        window.watchTimer = setInterval(() => {
+            const elapsedSincePlay = (Date.now() - window.watchStart) / 1000;
+            const estimatedCurrentTime = window.currentStartTime + elapsedSincePlay;
+
+            if (estimatedCurrentTime > window.currentStartTime + 5) { // Only save if progress is significant
+                saveProgress(window.currentSeason, window.currentEpisode, estimatedCurrentTime);
+                setLastWatched(window.currentSeason, window.currentEpisode, estimatedCurrentTime, false);
+            }
+
+            if (estimatedCurrentTime >= 600) { // Mark watched after 10 minutes (600 seconds)
+                markWatched(window.currentSeason, window.currentEpisode);
+                setLastWatched(window.currentSeason, window.currentEpisode, 0, true);
+                clearInterval(window.watchTimer);
+            }
+        }, 5000); // Check every 5 seconds
+
+        setLastWatched(window.currentSeason, window.currentEpisode, startTime, false);
+        updateResumeLastButton();
+    }
+
+    function playSelectedEpisode() {
+        playEpisode(undefined, undefined, undefined, false);
+    }
+
+    function markWatched(season, episode) {
+        let watched = getWatched(); // Use the wrapped function
+        if (!watched[season]) watched[season] = [];
+        if (!watched[season].includes(episode)) {
+            watched[season].push(episode);
+            setWatched(watched); // Use the wrapped function
+            renderEpisodeSelect();
+            renderEpisodeList();
+        }
+        let progress = getProgress(); // Use the wrapped function
+        if (progress[season] && progress[season][episode]) {
+            delete progress[season][episode];
+            if (Object.keys(progress[season]).length === 0) {
+                delete progress[season];
+            }
+            setProgress(progress); // Use the wrapped function
+        }
+        updateResumeLastButton();
+    }
+
+    function saveProgress(season, episode, seconds) {
+        let progress = getProgress(); // Use the wrapped function
+        if (!progress[season]) progress[season] = {};
+        progress[season][episode] = seconds;
+        setProgress(progress); // Use the wrapped function
+    }
+
+    function updateResumeLastButton() {
+        const resumeBtn = document.getElementById('resumeLastBtn');
+
+        if (!resumeBtn) return;
+
+        const last = getLastWatched(); // Use the wrapped function
+
+        if (!last) {
+            resumeBtn.style.display = 'none';
+            return;
+        }
+
+        let season = last.season;
+        let episode = last.episode;
+        let seconds = last.seconds;
+        let finished = last.finished;
+        let watched = getWatched(); // Use the wrapped function
+
+        let buttonText = '';
+        let buttonAction = '';
+        let targetSeason = season;
+        let targetEpisode = episode;
+        let targetTime = seconds;
+
+        const isLastEpisodeWatched = watched[season] && watched[season].includes(episode);
+
+        const episodesInCurrentSeason = episodeData[season] ? Object.keys(episodeData[season]).length : 0;
+        const currentSeasonEpisodeCount = episodesInCurrentSeason > 0 ? Object.keys(episodeData[season]).length : 22;
+
+        if (finished || isLastEpisodeWatched) {
+            let nextEpisodeNum = parseInt(episode, 10) + 1;
+            let nextSeasonNum = parseInt(season, 10);
+
+            if (nextEpisodeNum > currentSeasonEpisodeCount) {
+                nextSeasonNum++;
+                nextEpisodeNum = 1;
+                if (nextSeasonNum > totalSeasons) {
+                    resumeBtn.style.display = 'none';
+                    return;
+                }
+            }
+            targetSeason = nextSeasonNum.toString();
+            targetEpisode = nextEpisodeNum.toString();
+            targetTime = 0;
+            buttonText = `Play Next: S${targetSeason} E${targetEpisode}`;
+            buttonAction = () => playEpisode(targetTime, targetSeason, targetEpisode, true);
+        } else {
+            buttonText = `Continue S${season} E${episode}`;
+            buttonAction = () => playEpisode(Math.floor(seconds), season, episode, true);
+        }
+
+        resumeBtn.textContent = buttonText;
+        resumeBtn.onclick = buttonAction;
+        resumeBtn.style.display = 'inline-block';
+    }
+
+
+    document.getElementById('clearDataBtn').onclick = function() {
+        showCustomModal('Are you sure you want to clear all watched data and progress? This cannot be undone.', 'confirm', async (response) => {
+            if (response) {
+                if (userId && db && firebaseInitialized) { // Only clear Firestore if a user is logged in
+                    // Clear Firestore data for the current user
+                    try {
+                        const appId = 'default-app-id'; // Use a static ID for local development
+                        await setDoc(doc(db, `artifacts/${appId}/users/${userId}/watched/data`), { value: JSON.stringify({}) });
+                        await setDoc(doc(db, `artifacts/${appId}/users/${userId}/progress/data`), { value: JSON.stringify({}) });
+                        await setDoc(doc(db, `artifacts/${appId}/users/${userId}/lastWatched/data`), { value: JSON.stringify(null) });
+                        console.log("Firestore data cleared for user:", userId);
+                    } catch (error) {
+                        console.error("Error clearing Firestore data:", error);
+                        showCustomModal('Error clearing cloud data. Please try again.', 'alert');
+                        return; // Stop if Firestore clear failed
+                    }
+                }
+
+                // Always clear local storage data and cookies
+                localStorage.clear();
+                document.cookie.split(";").forEach(function(c) {
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+                });
+
+                isShowingAllEpisodes = false;
+                currentEpisodesDisplayed = EPISODES_DISPLAY_WINDOW_SIZE;
+                renderEpisodeSelect();
+                renderEpisodeList();
+                updateResumeLastButton();
+                document.getElementById('videoPlayer').src = '';
+                showCustomModal('All data (local and cloud, if logged in) has been cleared.', 'alert');
+                if (window.watchTimer) clearInterval(window.watchTimer);
+            }
+        });
+    };
+
+    document.getElementById('seasonSelect').addEventListener('change', () => {
+        currentSeason = document.getElementById('seasonSelect').value;
+        isShowingAllEpisodes = false;
+        currentEpisodesDisplayed = EPISODES_DISPLAY_WINDOW_SIZE;
+        renderEpisodeSelect();
+        renderEpisodeList();
+        updateResumeLastButton();
+    });
+    document.getElementById('episodeSelect').addEventListener('change', () => {
+        updateEpisodeSelectColor();
+        updateResumeLastButton();
+    });
+    document.getElementById('loadMoreBtn').addEventListener('click', loadMoreEpisodes);
+    document.getElementById('loadAllBtn').addEventListener('click', loadAllEpisodes);
+    document.getElementById('showLessBtn').addEventListener('click', showLessEpisodes);
+
+    // --- Initial Firebase Setup and Auth State Listener ---
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            // This is the actual Firebase Config object copied from your Firebase project settings.
+            const firebaseConfig = {
+                apiKey: "AIzaSyC1jYuy113t1QWTevjS-_ZqJTU7FB7R9B0",
+                authDomain: "my-tv-shows-87d08.firebaseapp.com",
+                projectId: "my-tv-shows-87d08",
+                storageBucket: "my-tv-shows-87d08.firebasestorage.app",
+                messagingSenderId: "397623883828",
+                appId: "1:397623883828:web:05dc3c56630f73cf93c489",
+                measurementId: "G-CSEYYMHHSL"
+            };
+
+            // Log the config to help user verify
+            console.log("Firebase config being used:", firebaseConfig);
+
+            // Ensure the config is not empty and has a non-default API key
+            if (Object.keys(firebaseConfig).length > 0 && firebaseConfig.apiKey && firebaseConfig.apiKey !== "YOUR_API_KEY_HERE") {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                firebaseInitialized = true;
+
+                // Authentication state listener
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        document.getElementById('loggedInUser').textContent = `Logged in as: ${user.email || 'Anonymous'} (ID: ${userId})`;
+                        document.getElementById('loggedInUser').classList.add('visible');
+                        document.getElementById('loginBtn').style.display = 'none';
+                        document.getElementById('signupBtn').style.display = 'none';
+                        document.getElementById('logoutBtn').style.display = 'inline-block';
+
+                        // Migrate local data to Firestore on first login
+                        await migrateLocalDataToFirestore();
+                        // Set up Firestore listeners for progress data
+                        setupFirestoreListeners();
+                        // Load data from Firestore after listeners are set up
+                        watchedData = await getFirestoreDoc('watched') || {};
+                        progressData = await getFirestoreDoc('progress') || {};
+                        lastWatchedData = await getFirestoreDoc('lastWatched') || null;
+
+                    } else {
+                        userId = null;
+                        document.getElementById('loggedInUser').classList.remove('visible');
+                        document.getElementById('loginBtn').style.display = 'inline-block';
+                        document.getElementById('signupBtn').style.display = 'inline-block';
+                        document.getElementById('logoutBtn').style.display = 'none';
+
+                        // If logged out or anonymous, use local storage fallback
+                        watchedData = getWatchedLocal();
+                        progressData = getProgressLocal();
+                        lastWatchedData = getLastWatchedLocal();
+                        document.getElementById('videoPlayer').src = ''; // Clear video
+                    }
+                    isAuthReady = true; // Auth state check complete
+                    fetchEpisodeData(); // Fetch episode data once auth state is determined
+                });
+
+                // For local development, we don't have __initial_auth_token. Sign in anonymously first.
+                // This will give a userId for guest functionality.
+                await signInAnonymously(auth);
+
+            } else {
+                console.warn("Firebase config is incomplete or incorrect. Please ensure apiKey is valid. Running in local-only mode.");
+                // If no Firebase config, run in local-only mode
+                firebaseInitialized = false;
+                isAuthReady = true; // Mark auth ready even without Firebase
+                userId = null; // No user ID in local-only mode
+                document.getElementById('loggedInUser').textContent = 'Running in local mode (ID: anonymous)';
+                document.getElementById('loggedInUser').classList.add('visible');
+                document.getElementById('loginBtn').style.display = 'inline-block'; // Keep login/signup visible for potential future setup
+                document.getElementById('signupBtn').style.display = 'inline-block';
+                document.getElementById('logoutBtn').style.display = 'none';
+                document.getElementById('clearDataBtn').style.display = 'inline-block'; // Allow clearing local data
+                
+                // Load data from local storage immediately
+                watchedData = getWatchedLocal();
+                progressData = getProgressLocal();
+                lastWatchedData = getLastWatchedLocal();
+                fetchEpisodeData(); // Fetch episode data
+            }
+        } catch (e) {
+            console.error("Failed to initialize Firebase:", e);
+            // Fallback to local-only mode if Firebase initialization fails
+            firebaseInitialized = false;
+            isAuthReady = true; // Mark auth ready even if Firebase failed
+            userId = null; // No user ID
+            document.getElementById('loggedInUser').textContent = 'Running in local mode (ID: anonymous)';
+            document.getElementById('loggedInUser').classList.add('visible');
+            document.getElementById('loginBtn').style.display = 'inline-block'; // Keep login/signup visible for potential future setup
+            document.getElementById('signupBtn').style.display = 'inline-block';
+            document.getElementById('logoutBtn').style.display = 'none';
+            document.getElementById('clearDataBtn').style.display = 'inline-block'; // Allow clearing local data
+
+            // Load data from local storage immediately
+            watchedData = getWatchedLocal();
+            progressData = getProgressLocal();
+            lastWatchedData = getLastWatchedLocal();
+            fetchEpisodeData(); // Fetch episode data
+        }
+    });
+
+</script>
+
+</body>
+</html>
