@@ -152,6 +152,7 @@
             box-shadow: var(--button-glow-light);
             transform: translateY(0);
             transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out, background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+            text-decoration: none; /* Added to remove underline from login/signup links */
         }
         .action-button:hover, .action-button:active {
             box-shadow: var(--button-glow-hover);
@@ -465,6 +466,7 @@
             min-width: unset;
             height: auto;
             align-self: flex-start; /* Align to the start of the flex container */
+            text-decoration: none; /* Ensure no underline on these links */
         }
 
         /* Content area that shows only when logged in */
@@ -882,7 +884,8 @@
             console.warn(`Attempted to get Firestore doc '${collectionName}' without userId or db initialized or firebase not ready.`);
             return null;
         }
-        const appId = 'default-app-id'; // For local testing, can be a static ID
+        // Use __app_id if available, otherwise a static ID for local development
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const docRef = doc(db, `artifacts/${appId}/users/${userId}/${collectionName}/data`);
         try {
             const docSnap = await getDoc(docRef);
@@ -898,7 +901,8 @@
             console.warn(`Attempted to set Firestore doc '${collectionName}' without userId or db initialized or firebase not ready.`);
             return;
         }
-        const appId = 'default-app-id'; // For local testing, can be a static ID
+        // Use __app_id if available, otherwise a static ID for local development
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const docRef = doc(db, `artifacts/${appId}/users/${userId}/${collectionName}/data`);
         try {
             await setDoc(docRef, { value: JSON.stringify(data) }, { merge: true });
@@ -913,7 +917,8 @@
             return;
         }
 
-        const appId = 'default-app-id'; // For local testing, can be a static ID
+        // Use __app_id if available, otherwise a static ID for local development
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const watchedDocRef = doc(db, `artifacts/${appId}/users/${userId}/watched/data`);
         const progressDocRef = doc(db, `artifacts/${appId}/users/${userId}/progress/data`);
         const lastWatchedDocRef = doc(db, `artifacts/${appId}/users/${userId}/lastWatched/data`);
@@ -1555,7 +1560,8 @@
                 if (userId && db && firebaseInitialized) { // Only clear Firestore if a user is logged in
                     // Clear Firestore data for the current user
                     try {
-                        const appId = 'default-app-id'; // Use a static ID for local development
+                        // Use __app_id if available, otherwise a static ID for local development
+                        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
                         await setDoc(doc(db, `artifacts/${appId}/users/${userId}/watched/data`), { value: JSON.stringify({}) });
                         await setDoc(doc(db, `artifacts/${appId}/users/${userId}/progress/data`), { value: JSON.stringify({}) });
                         await setDoc(doc(db, `artifacts/${appId}/users/${userId}/lastWatched/data`), { value: JSON.stringify(null) });
@@ -1625,7 +1631,8 @@
                 auth = getAuth(app);
                 firebaseInitialized = true;
 
-                // Authentication state listener
+                // Authentication state listener - this is the core of data sync
+                // It handles both initial load and subsequent changes (login/logout)
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
                         userId = user.uid;
@@ -1635,35 +1642,109 @@
                         document.getElementById('signupBtn').style.display = 'none';
                         document.getElementById('logoutBtn').style.display = 'inline-block';
 
-                        // Migrate local data to Firestore on first login
-                        await migrateLocalDataToFirestore();
-                        // Set up Firestore listeners for progress data
+                        // Set up Firestore listeners *after* user is authenticated
                         setupFirestoreListeners();
-                        // Load data from Firestore after listeners are set up
+
+                        // Load data from Firestore after listeners are set up and user is authenticated
+                        // This will trigger snapshot listeners if data exists.
                         watchedData = await getFirestoreDoc('watched') || {};
                         progressData = await getFirestoreDoc('progress') || {};
                         lastWatchedData = await getFirestoreDoc('lastWatched') || null;
 
+                        // Migrate local data to Firestore if it exists and Firestore data is empty
+                        await migrateLocalDataToFirestore();
+
                     } else {
+                        // User is logged out or is anonymous (if anonymous sign-in was used)
                         userId = null;
                         document.getElementById('loggedInUser').classList.remove('visible');
                         document.getElementById('loginBtn').style.display = 'inline-block';
                         document.getElementById('signupBtn').style.display = 'inline-block';
                         document.getElementById('logoutBtn').style.display = 'none';
 
-                        // If logged out or anonymous, use local storage fallback
+                        // When logged out, switch to using local storage immediately
                         watchedData = getWatchedLocal();
                         progressData = getProgressLocal();
                         lastWatchedData = getLastWatchedLocal();
-                        document.getElementById('videoPlayer').src = ''; // Clear video
+                        document.getElementById('videoPlayer').src = ''; // Clear video on logout
                     }
                     isAuthReady = true; // Auth state check complete
-                    fetchEpisodeData(); // Fetch episode data once auth state is determined
+                    // Re-render UI based on the current data source (Firestore or Local)
+                    renderEpisodeSelect();
+                    renderEpisodeList();
+                    updateResumeLastButton();
                 });
 
-                // For local development, we don't have __initial_auth_token. Sign in anonymously first.
-                // This will give a userId for guest functionality.
-                await signInAnonymously(auth);
+                // Attempt initial sign-in: first with custom token if available, then anonymously
+                if (!auth.currentUser) {
+                    try {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                            console.log("Signed in with custom token.");
+                        } else {
+                            // If no custom token, or if custom token is invalid/empty, try anonymous
+                            await signInAnonymously(auth);
+                            console.log("Signed in anonymously.");
+                        }
+                    } catch (initialSignInError) {
+                        console.error("Error during initial sign-in (anonymous or custom token):", initialSignInError.code, initialSignInError.message);
+                        if (initialSignInError.code === 'auth/custom-token-mismatch' || initialSignInError.code === 'auth/invalid-custom-token') {
+                            showCustomModal("There was an issue with the provided custom token. Attempting anonymous login. Please check your token or Firebase setup if this persists.", "alert");
+                            // Try anonymous login even if custom token fails
+                            try {
+                                await signInAnonymously(auth);
+                                console.log("Fell back to anonymous sign-in after custom token failure.");
+                            } catch (anonFallbackError) {
+                                console.error("Error during anonymous fallback sign-in:", anonFallbackError.code, anonFallbackError.message);
+                                if (anonFallbackError.code === 'auth/admin-restricted-operation') {
+                                    showCustomModal("Anonymous authentication is not enabled in your Firebase project. Please enable it in Firebase console (Authentication -> Sign-in method -> Anonymous). Running in local-only mode.", "alert");
+                                } else {
+                                    showCustomModal(`Authentication setup failed: ${anonFallbackError.message}. Running in local-only mode.`, "alert");
+                                }
+                                firebaseInitialized = false; // Firebase auth setup failed
+                                isAuthReady = true; // Still mark auth ready so data loads from local
+                                userId = null;
+                                document.getElementById('loggedInUser').textContent = 'Running in local mode (ID: anonymous)';
+                                document.getElementById('loggedInUser').classList.add('visible');
+                                document.getElementById('loginBtn').style.display = 'inline-block';
+                                document.getElementById('signupBtn').style.display = 'inline-block';
+                                document.getElementById('logoutBtn').style.display = 'none';
+                                document.getElementById('clearDataBtn').style.display = 'inline-block';
+                                watchedData = getWatchedLocal();
+                                progressData = getProgressLocal();
+                                lastWatchedData = getLastWatchedLocal();
+                            }
+                        } else if (initialSignInError.code === 'auth/admin-restricted-operation') {
+                             showCustomModal("Anonymous authentication is not enabled in your Firebase project. Please enable it in Firebase console (Authentication -> Sign-in method -> Anonymous). Running in local-only mode.", "alert");
+                             firebaseInitialized = false;
+                             isAuthReady = true;
+                             userId = null;
+                             document.getElementById('loggedInUser').textContent = 'Running in local mode (ID: anonymous)';
+                             document.getElementById('loggedInUser').classList.add('visible');
+                             document.getElementById('loginBtn').style.display = 'inline-block';
+                             document.getElementById('signupBtn').style.display = 'inline-block';
+                             document.getElementById('logoutBtn').style.display = 'none';
+                             document.getElementById('clearDataBtn').style.display = 'inline-block';
+                             watchedData = getWatchedLocal();
+                             progressData = getProgressLocal();
+                             lastWatchedData = getLastWatchedLocal();
+                        } else {
+                            showCustomModal(`Initial authentication failed: ${initialSignInError.message}. Running in local-only mode.`, "alert");
+                            firebaseInitialized = false;
+                            isAuthReady = true;
+                            userId = null;
+                            document.getElementById('loggedInUser').textContent = 'Running in local mode (ID: anonymous)';
+                            document.getElementById('loggedInUser').classList.add('visible');
+                            document.getElementById('loginBtn').style.display = 'inline-block';
+                            document.getElementById('signupBtn').style.display = 'inline-block';
+                            document.getElementById('logoutBtn').style.display = 'none';
+                            document.getElementById('clearDataBtn').style.display = 'inline-block';
+                            watchedData = getWatchedLocal();
+                            progressData = getProgressLocal();
+                            lastWatchedData = getLastWatchedLocal();
+                        }
+                    }
+                }
 
             } else {
                 console.warn("Firebase config is incomplete or incorrect. Please ensure apiKey is valid. Running in local-only mode.");
@@ -1682,10 +1763,9 @@
                 watchedData = getWatchedLocal();
                 progressData = getProgressLocal();
                 lastWatchedData = getLastWatchedLocal();
-                fetchEpisodeData(); // Fetch episode data
             }
         } catch (e) {
-            console.error("Failed to initialize Firebase:", e);
+            console.error("Failed to initialize Firebase outer block:", e); // Catch any errors from initializeApp itself
             // Fallback to local-only mode if Firebase initialization fails
             firebaseInitialized = false;
             isAuthReady = true; // Mark auth ready even if Firebase failed
@@ -1701,7 +1781,9 @@
             watchedData = getWatchedLocal();
             progressData = getProgressLocal();
             lastWatchedData = getLastWatchedLocal();
-            fetchEpisodeData(); // Fetch episode data
+        } finally {
+             // Always fetch episode data, regardless of Firebase status, to populate the UI
+             fetchEpisodeData();
         }
     });
 
