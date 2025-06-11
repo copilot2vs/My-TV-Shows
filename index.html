@@ -1005,7 +1005,7 @@
         const localProgress = getProgressLocal();
         const localLastWatched = getLastWatchedLocal();
 
-        // Merge local data into Firestore, don't skip if Firestore has data
+        // Merge local data into Firestore, always prefer the most recent progress/lastWatched
         if (Object.keys(localWatched).length > 0) {
             try {
                 const firestoreWatched = await getFirestoreDoc('watched') || {};
@@ -1022,7 +1022,16 @@
         if (Object.keys(localProgress).length > 0) {
             try {
                 const firestoreProgress = await getFirestoreDoc('progress') || {};
-                const merged = { ...firestoreProgress, ...localProgress };
+                // Prefer the higher progress for each episode
+                const merged = { ...firestoreProgress };
+                for (const season in localProgress) {
+                    if (!merged[season]) merged[season] = {};
+                    for (const episode in localProgress[season]) {
+                        const localVal = localProgress[season][episode];
+                        const remoteVal = (firestoreProgress[season] && firestoreProgress[season][episode]) || 0;
+                        merged[season][episode] = Math.max(localVal, remoteVal);
+                    }
+                }
                 await setFirestoreDoc('progress', merged);
                 localStorage.removeItem(PROGRESS_KEY);
             } catch (error) {
@@ -1031,15 +1040,26 @@
         }
         if (localLastWatched) {
             try {
-                // Always overwrite with the latest local last watched
-                await setFirestoreDoc('lastWatched', localLastWatched);
+                // Always prefer the latest local lastWatched if it's more recent
+                const firestoreLastWatched = await getFirestoreDoc('lastWatched');
+                let shouldUpdate = true;
+                if (firestoreLastWatched && firestoreLastWatched.season && firestoreLastWatched.episode) {
+                    // If both exist, prefer the one with higher progress or more recent
+                    const localProgress = getProgressLocal();
+                    const remoteProgress = await getFirestoreDoc('progress') || {};
+                    const localSec = (localProgress[localLastWatched.season] && localProgress[localLastWatched.season][localLastWatched.episode]) || localLastWatched.seconds || 0;
+                    const remoteSec = (remoteProgress[firestoreLastWatched.season] && remoteProgress[firestoreLastWatched.season][firestoreLastWatched.episode]) || firestoreLastWatched.seconds || 0;
+                    shouldUpdate = localSec > remoteSec;
+                }
+                if (shouldUpdate) {
+                    await setFirestoreDoc('lastWatched', localLastWatched);
+                }
                 localStorage.removeItem(LAST_WATCHED_KEY);
             } catch (error) {
                 console.error("Error migrating last watched data:", error);
             }
         }
     }
-
 
     // --- Logout Functionality ---
     document.getElementById('logoutBtn').addEventListener('click', async () => {
@@ -1610,17 +1630,15 @@
                         // Set up Firestore listeners *after* user is authenticated
                         setupFirestoreListeners();
 
+                        // Migrate local data to Firestore BEFORE loading Firestore data/UI
+                        await migrateLocalDataToFirestore();
+
                         // Load data from Firestore after listeners are set up and user is authenticated
                         // This will trigger snapshot listeners if data exists.
                         watchedData = await getFirestoreDoc('watched') || {};
                         progressData = await getFirestoreDoc('progress') || {};
                         lastWatchedData = await getFirestoreDoc('lastWatched') || null;
                         console.log("Initial data loaded from Firestore after login.");
-
-
-                        // Migrate local data to Firestore if it exists and Firestore data is empty
-                        await migrateLocalDataToFirestore();
-
                     } else {
                         // User is logged out or is anonymous (if anonymous sign-in was used)
                         userId = null;
