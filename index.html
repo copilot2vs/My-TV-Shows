@@ -731,7 +731,6 @@
 <body>
 
 <div class="container">
-    <!-- Authentication buttons and display -->
     <div class="auth-buttons">
         <a href="login.html" id="loginBtn" class="action-button">Login</a>
         <a href="login.html?mode=signup" id="signupBtn" class="action-button">Sign Up</a>
@@ -742,7 +741,6 @@
     <button id="clearDataBtn" title="Clear all data"><i class="fas fa-trash-alt"></i></button>
     <h1>My TV Shows</h1>
 
-    <!-- Main content area, always visible -->
     <div id="contentArea" class="content-area">
         <iframe id="videoPlayer" src="" frameborder="0" allowfullscreen></iframe>
 
@@ -926,10 +924,10 @@
         onSnapshot(watchedDocRef, (docSnap) => {
             if (docSnap.exists()) {
                 watchedData = JSON.parse(docSnap.data().value);
-                console.log("Watched data updated from Firestore:", watchedData);
+                console.log("Watched data updated from Firestore via snapshot:", watchedData);
             } else {
                 watchedData = {};
-                console.log("Watched data cleared in Firestore.");
+                console.log("Watched data cleared in Firestore via snapshot.");
             }
             renderEpisodeSelect();
             renderEpisodeList();
@@ -938,10 +936,10 @@
         onSnapshot(progressDocRef, (docSnap) => {
             if (docSnap.exists()) {
                 progressData = JSON.parse(docSnap.data().value);
-                console.log("Progress data updated from Firestore:", progressData);
+                console.log("Progress data updated from Firestore via snapshot:", progressData);
             } else {
                 progressData = {};
-                console.log("Progress data cleared in Firestore.");
+                console.log("Progress data cleared in Firestore via snapshot.");
             }
             // No direct UI update needed here, as playEpisode will read it
         }, (error) => console.error("Error watching progress data:", error));
@@ -949,10 +947,10 @@
         onSnapshot(lastWatchedDocRef, (docSnap) => {
             if (docSnap.exists()) {
                 lastWatchedData = JSON.parse(docSnap.data().value);
-                console.log("Last watched data updated from Firestore:", lastWatchedData);
+                console.log("Last watched data updated from Firestore via snapshot:", lastWatchedData);
             } else {
                 lastWatchedData = null;
-                console.log("Last watched data cleared in Firestore.");
+                console.log("Last watched data cleared in Firestore via snapshot.");
             }
             updateResumeLastButton();
         }, (error) => console.error("Error watching last watched data:", error));
@@ -1048,40 +1046,58 @@
     // --- Wrapped Data Access Functions (to use Firestore if logged in, else Local Storage) ---
     function getWatched() {
         // Use Firestore if logged in AND Firebase is initialized, otherwise use Local Storage
-        if (userId && isAuthReady && firebaseInitialized) return watchedData;
+        if (userId && isAuthReady && firebaseInitialized) {
+            console.log("getWatched: Using Firestore. current watchedData:", watchedData);
+            return watchedData;
+        }
+        console.log("getWatched: Using Local Storage.");
         return getWatchedLocal();
     }
     function setWatched(watched) {
         // Use Firestore if logged in AND Firebase is initialized, otherwise use Local Storage
         if (userId && isAuthReady && firebaseInitialized && db) {
+            console.log("setWatched: Using Firestore. Setting watched data:", watched);
             setFirestoreDoc('watched', watched);
         } else {
+            console.log("setWatched: Using Local Storage. Setting watched data:", watched);
             setWatchedLocal(watched);
         }
     }
     function getProgress() {
         // Use Firestore if logged in AND Firebase is initialized, otherwise use Local Storage
-        if (userId && isAuthReady && firebaseInitialized) return progressData;
+        if (userId && isAuthReady && firebaseInitialized) {
+            console.log("getProgress: Using Firestore. current progressData:", progressData);
+            return progressData;
+        }
+        console.log("getProgress: Using Local Storage.");
         return getProgressLocal();
     }
     function setProgress(progress) {
         // Use Firestore if logged in AND Firebase is initialized, otherwise use Local Storage
         if (userId && isAuthReady && firebaseInitialized && db) {
+            console.log("setProgress: Using Firestore. Setting progress data:", progress);
             setFirestoreDoc('progress', progress);
         } else {
+            console.log("setProgress: Using Local Storage. Setting progress data:", progress);
             setProgressLocal(progress);
         }
     }
     function getLastWatched() {
         // Use Firestore if logged in AND Firebase is initialized, otherwise use Local Storage
-        if (userId && isAuthReady && firebaseInitialized) return lastWatchedData;
+        if (userId && isAuthReady && firebaseInitialized) {
+            console.log("getLastWatched: Using Firestore. current lastWatchedData:", lastWatchedData);
+            return lastWatchedData;
+        }
+        console.log("getLastWatched: Using Local Storage.");
         return getLastWatchedLocal();
     }
     function setLastWatched(season, episode, seconds, finished) {
         // Use Firestore if logged in AND Firebase is initialized, otherwise use Local Storage
         if (userId && isAuthReady && firebaseInitialized && db) {
+            console.log(`setLastWatched: Using Firestore. Setting S${season} E${episode} at ${seconds}s, finished: ${finished}`);
             setFirestoreDoc('lastWatched', { season, episode, seconds, finished });
         } else {
+            console.log(`setLastWatched: Using Local Storage. Setting S${season} E${episode} at ${seconds}s, finished: ${finished}`);
             setLastWatchedLocal(season, episode, seconds, finished);
         }
     }
@@ -1557,6 +1573,7 @@
     document.getElementById('clearDataBtn').onclick = function() {
         showCustomModal('Are you sure you want to clear all watched data and progress? This cannot be undone.', 'confirm', async (response) => {
             if (response) {
+                let clearedCloud = false;
                 if (userId && db && firebaseInitialized) { // Only clear Firestore if a user is logged in
                     // Clear Firestore data for the current user
                     try {
@@ -1566,10 +1583,11 @@
                         await setDoc(doc(db, `artifacts/${appId}/users/${userId}/progress/data`), { value: JSON.stringify({}) });
                         await setDoc(doc(db, `artifacts/${appId}/users/${userId}/lastWatched/data`), { value: JSON.stringify(null) });
                         console.log("Firestore data cleared for user:", userId);
+                        clearedCloud = true;
                     } catch (error) {
                         console.error("Error clearing Firestore data:", error);
                         showCustomModal('Error clearing cloud data. Please try again.', 'alert');
-                        return; // Stop if Firestore clear failed
+                        // Do not return here; proceed to clear local data even if cloud failed
                     }
                 }
 
@@ -1578,6 +1596,8 @@
                 document.cookie.split(";").forEach(function(c) {
                     document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
                 });
+                console.log("Local storage and cookies cleared.");
+
 
                 isShowingAllEpisodes = false;
                 currentEpisodesDisplayed = EPISODES_DISPLAY_WINDOW_SIZE;
@@ -1585,7 +1605,13 @@
                 renderEpisodeList();
                 updateResumeLastButton();
                 document.getElementById('videoPlayer').src = '';
-                showCustomModal('All data (local and cloud, if logged in) has been cleared.', 'alert');
+                
+                if (clearedCloud) {
+                     showCustomModal('All data (local and cloud) has been cleared.', 'alert');
+                } else {
+                    showCustomModal('All local data has been cleared. Cloud data was not cleared as you were not logged in or Firebase was not initialized.', 'alert');
+                }
+
                 if (window.watchTimer) clearInterval(window.watchTimer);
             }
         });
@@ -1641,6 +1667,7 @@
                         document.getElementById('loginBtn').style.display = 'none';
                         document.getElementById('signupBtn').style.display = 'none';
                         document.getElementById('logoutBtn').style.display = 'inline-block';
+                        console.log("User logged in. userId:", userId);
 
                         // Set up Firestore listeners *after* user is authenticated
                         setupFirestoreListeners();
@@ -1650,6 +1677,8 @@
                         watchedData = await getFirestoreDoc('watched') || {};
                         progressData = await getFirestoreDoc('progress') || {};
                         lastWatchedData = await getFirestoreDoc('lastWatched') || null;
+                        console.log("Initial data loaded from Firestore after login.");
+
 
                         // Migrate local data to Firestore if it exists and Firestore data is empty
                         await migrateLocalDataToFirestore();
@@ -1661,6 +1690,7 @@
                         document.getElementById('loginBtn').style.display = 'inline-block';
                         document.getElementById('signupBtn').style.display = 'inline-block';
                         document.getElementById('logoutBtn').style.display = 'none';
+                        console.log("User logged out or is not authenticated. Falling back to local storage.");
 
                         // When logged out, switch to using local storage immediately
                         watchedData = getWatchedLocal();
@@ -1669,6 +1699,8 @@
                         document.getElementById('videoPlayer').src = ''; // Clear video on logout
                     }
                     isAuthReady = true; // Auth state check complete
+                    console.log(`Auth state ready. userId: ${userId}, isAuthReady: ${isAuthReady}, firebaseInitialized: ${firebaseInitialized}`);
+
                     // Re-render UI based on the current data source (Firestore or Local)
                     renderEpisodeSelect();
                     renderEpisodeList();
@@ -1680,11 +1712,11 @@
                     try {
                         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                             await signInWithCustomToken(auth, __initial_auth_token);
-                            console.log("Signed in with custom token.");
+                            console.log("Attempted sign-in with custom token.");
                         } else {
                             // If no custom token, or if custom token is invalid/empty, try anonymous
                             await signInAnonymously(auth);
-                            console.log("Signed in anonymously.");
+                            console.log("Attempted anonymous sign-in.");
                         }
                     } catch (initialSignInError) {
                         console.error("Error during initial sign-in (anonymous or custom token):", initialSignInError.code, initialSignInError.message);
@@ -1701,9 +1733,9 @@
                                 } else {
                                     showCustomModal(`Authentication setup failed: ${anonFallbackError.message}. Running in local-only mode.`, "alert");
                                 }
-                                firebaseInitialized = false; // Firebase auth setup failed
+                                firebaseInitialized = false; // Firebase auth setup failed, force local mode
                                 isAuthReady = true; // Still mark auth ready so data loads from local
-                                userId = null;
+                                userId = null; // No user ID in this failed state
                                 document.getElementById('loggedInUser').textContent = 'Running in local mode (ID: anonymous)';
                                 document.getElementById('loggedInUser').classList.add('visible');
                                 document.getElementById('loginBtn').style.display = 'inline-block';
@@ -1716,8 +1748,8 @@
                             }
                         } else if (initialSignInError.code === 'auth/admin-restricted-operation') {
                              showCustomModal("Anonymous authentication is not enabled in your Firebase project. Please enable it in Firebase console (Authentication -> Sign-in method -> Anonymous). Running in local-only mode.", "alert");
-                             firebaseInitialized = false;
-                             isAuthReady = true;
+                             firebaseInitialized = false; // Firebase auth setup failed, force local mode
+                             isAuthReady = true; // Still mark auth ready
                              userId = null;
                              document.getElementById('loggedInUser').textContent = 'Running in local mode (ID: anonymous)';
                              document.getElementById('loggedInUser').classList.add('visible');
@@ -1730,8 +1762,8 @@
                              lastWatchedData = getLastWatchedLocal();
                         } else {
                             showCustomModal(`Initial authentication failed: ${initialSignInError.message}. Running in local-only mode.`, "alert");
-                            firebaseInitialized = false;
-                            isAuthReady = true;
+                            firebaseInitialized = false; // Firebase auth setup failed, force local mode
+                            isAuthReady = true; // Still mark auth ready
                             userId = null;
                             document.getElementById('loggedInUser').textContent = 'Running in local mode (ID: anonymous)';
                             document.getElementById('loggedInUser').classList.add('visible');
