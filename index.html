@@ -909,11 +909,54 @@
         }
     }
 
-    function setupFirestoreListeners() {
-        if (!db || !userId || !firebaseInitialized) {
-            console.log("Firestore not initialized, user not logged in, or Firebase not ready, skipping listeners.");
-            return;
+    // --- Wrapped Data Access Functions (to use Firestore if logged in, else Local Storage) ---
+    function getWatched() {
+        // Always use Firestore if logged in, otherwise use Local Storage
+        if (userId && isAuthReady && firebaseInitialized) {
+            return watchedData;
         }
+        return getWatchedLocal();
+    }
+    function setWatched(watched) {
+        if (userId && isAuthReady && firebaseInitialized && db) {
+            watchedData = watched; // update in-memory
+            setFirestoreDoc('watched', watched);
+        } else {
+            setWatchedLocal(watched);
+        }
+    }
+    function getProgress() {
+        if (userId && isAuthReady && firebaseInitialized) {
+            return progressData;
+        }
+        return getProgressLocal();
+    }
+    function setProgress(progress) {
+        if (userId && isAuthReady && firebaseInitialized && db) {
+            progressData = progress; // update in-memory
+            setFirestoreDoc('progress', progress);
+        } else {
+            setProgressLocal(progress);
+        }
+    }
+    function getLastWatched() {
+        if (userId && isAuthReady && firebaseInitialized) {
+            return lastWatchedData;
+        }
+        return getLastWatchedLocal();
+    }
+    function setLastWatched(season, episode, seconds, finished) {
+        if (userId && isAuthReady && firebaseInitialized && db) {
+            lastWatchedData = { season, episode, seconds, finished }; // update in-memory
+            setFirestoreDoc('lastWatched', { season, episode, seconds, finished });
+        } else {
+            setLastWatchedLocal(season, episode, seconds, finished);
+        }
+    }
+
+    // --- Firestore Listeners: Always update UI on change ---
+    function setupFirestoreListeners() {
+        if (!db || !userId || !firebaseInitialized) return;
 
         // Use __app_id if available, otherwise a static ID for local development
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -924,181 +967,76 @@
         onSnapshot(watchedDocRef, (docSnap) => {
             if (docSnap.exists()) {
                 watchedData = JSON.parse(docSnap.data().value);
-                console.log("Watched data updated from Firestore via snapshot:", watchedData);
             } else {
                 watchedData = {};
-                console.log("Watched data cleared in Firestore via snapshot.");
             }
             renderEpisodeSelect();
             renderEpisodeList();
+            updateResumeLastButton();
         }, (error) => console.error("Error watching watched data:", error));
 
         onSnapshot(progressDocRef, (docSnap) => {
             if (docSnap.exists()) {
                 progressData = JSON.parse(docSnap.data().value);
-                console.log("Progress data updated from Firestore via snapshot:", progressData);
             } else {
                 progressData = {};
-                console.log("Progress data cleared in Firestore via snapshot.");
             }
-            // No direct UI update needed here, as playEpisode will read it
+            // Always update UI
+            renderEpisodeSelect();
+            renderEpisodeList();
+            updateResumeLastButton();
         }, (error) => console.error("Error watching progress data:", error));
 
         onSnapshot(lastWatchedDocRef, (docSnap) => {
             if (docSnap.exists()) {
                 lastWatchedData = JSON.parse(docSnap.data().value);
-                console.log("Last watched data updated from Firestore via snapshot:", lastWatchedData);
             } else {
                 lastWatchedData = null;
-                console.log("Last watched data cleared in Firestore via snapshot.");
             }
             updateResumeLastButton();
         }, (error) => console.error("Error watching last watched data:", error));
     }
 
 
+    // --- Always migrate local data to Firestore on login (merge) ---
     async function migrateLocalDataToFirestore() {
-        if (!isAuthReady || !userId || !db || !firebaseInitialized) return; // Only migrate after auth is ready and user is logged in
-
+        if (!isAuthReady || !userId || !db || !firebaseInitialized) return;
         const localWatched = getWatchedLocal();
         const localProgress = getProgressLocal();
         const localLastWatched = getLastWatchedLocal();
 
+        // Merge local data into Firestore, don't skip if Firestore has data
         if (Object.keys(localWatched).length > 0) {
             try {
-                const firestoreWatched = await getFirestoreDoc('watched');
-                if (!firestoreWatched || Object.keys(firestoreWatched).length === 0) {
-                    await setFirestoreDoc('watched', localWatched);
-                    console.log("Migrated local watched data to Firestore.");
-                    localStorage.removeItem(WATCHED_KEY); // Clear local after migration
+                const firestoreWatched = await getFirestoreDoc('watched') || {};
+                const merged = { ...firestoreWatched };
+                for (const s in localWatched) {
+                    merged[s] = Array.from(new Set([...(firestoreWatched[s] || []), ...(localWatched[s] || [])]));
                 }
+                await setFirestoreDoc('watched', merged);
+                localStorage.removeItem(WATCHED_KEY);
             } catch (error) {
                 console.error("Error migrating watched data:", error);
             }
         }
-
         if (Object.keys(localProgress).length > 0) {
             try {
-                const firestoreProgress = await getFirestoreDoc('progress');
-                if (!firestoreProgress || Object.keys(firestoreProgress).length === 0) {
-                    await setFirestoreDoc('progress', localProgress);
-                    console.log("Migrated local progress data to Firestore.");
-                    localStorage.removeItem(PROGRESS_KEY); // Clear local after migration
-                }
+                const firestoreProgress = await getFirestoreDoc('progress') || {};
+                const merged = { ...firestoreProgress, ...localProgress };
+                await setFirestoreDoc('progress', merged);
+                localStorage.removeItem(PROGRESS_KEY);
             } catch (error) {
                 console.error("Error migrating progress data:", error);
             }
         }
-
         if (localLastWatched) {
             try {
-                const firestoreLastWatched = await getFirestoreDoc('lastWatched');
-                if (!firestoreLastWatched) {
-                    await setFirestoreDoc('lastWatched', localLastWatched);
-                    console.log("Migrated local last watched data to Firestore.");
-                    localStorage.removeItem(LAST_WATCHED_KEY); // Clear local after migration
-                }
+                // Always overwrite with the latest local last watched
+                await setFirestoreDoc('lastWatched', localLastWatched);
+                localStorage.removeItem(LAST_WATCHED_KEY);
             } catch (error) {
                 console.error("Error migrating last watched data:", error);
             }
-        }
-    }
-
-
-    // --- Local Storage Fallback Functions (used if not logged in or Firebase fails) ---
-    function getWatchedLocal() {
-        try {
-            return JSON.parse(localStorage.getItem(WATCHED_KEY)) || {};
-        } catch (e) {
-            console.error("Error parsing local watched data:", e);
-            return {};
-        }
-    }
-    function setWatchedLocal(watched) {
-        localStorage.setItem(WATCHED_KEY, JSON.stringify(watched));
-    }
-    function getProgressLocal() {
-        try {
-            return JSON.parse(localStorage.getItem(PROGRESS_KEY)) || {};
-        } catch (e) {
-            console.error("Error parsing local progress data:", e);
-            return {};
-        }
-    }
-    function setProgressLocal(progress) {
-        localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
-    }
-    function getLastWatchedLocal() {
-        try {
-            return JSON.parse(localStorage.getItem(LAST_WATCHED_KEY)) || null;
-        } catch (e) {
-            console.error("Error parsing local last watched data:", e);
-            return null;
-        }
-    }
-    function setLastWatchedLocal(season, episode, seconds, finished) {
-        localStorage.setItem(LAST_WATCHED_KEY, JSON.stringify({
-            season, episode, seconds, finished
-        }));
-    }
-
-
-    // --- Wrapped Data Access Functions (to use Firestore if logged in, else Local Storage) ---
-    function getWatched() {
-        // Use Firestore if logged in AND Firebase is initialized, otherwise use Local Storage
-        if (userId && isAuthReady && firebaseInitialized) {
-            console.log("getWatched: Using Firestore. current watchedData:", watchedData);
-            return watchedData;
-        }
-        console.log("getWatched: Using Local Storage.");
-        return getWatchedLocal();
-    }
-    function setWatched(watched) {
-        // Use Firestore if logged in AND Firebase is initialized, otherwise use Local Storage
-        if (userId && isAuthReady && firebaseInitialized && db) {
-            console.log("setWatched: Using Firestore. Setting watched data:", watched);
-            setFirestoreDoc('watched', watched);
-        } else {
-            console.log("setWatched: Using Local Storage. Setting watched data:", watched);
-            setWatchedLocal(watched);
-        }
-    }
-    function getProgress() {
-        // Use Firestore if logged in AND Firebase is initialized, otherwise use Local Storage
-        if (userId && isAuthReady && firebaseInitialized) {
-            console.log("getProgress: Using Firestore. current progressData:", progressData);
-            return progressData;
-        }
-        console.log("getProgress: Using Local Storage.");
-        return getProgressLocal();
-    }
-    function setProgress(progress) {
-        // Use Firestore if logged in AND Firebase is initialized, otherwise use Local Storage
-        if (userId && isAuthReady && firebaseInitialized && db) {
-            console.log("setProgress: Using Firestore. Setting progress data:", progress);
-            setFirestoreDoc('progress', progress);
-        } else {
-            console.log("setProgress: Using Local Storage. Setting progress data:", progress);
-            setProgressLocal(progress);
-        }
-    }
-    function getLastWatched() {
-        // Use Firestore if logged in AND Firebase is initialized, otherwise use Local Storage
-        if (userId && isAuthReady && firebaseInitialized) {
-            console.log("getLastWatched: Using Firestore. current lastWatchedData:", lastWatchedData);
-            return lastWatchedData;
-        }
-        console.log("getLastWatched: Using Local Storage.");
-        return getLastWatchedLocal();
-    }
-    function setLastWatched(season, episode, seconds, finished) {
-        // Use Firestore if logged in AND Firebase is initialized, otherwise use Local Storage
-        if (userId && isAuthReady && firebaseInitialized && db) {
-            console.log(`setLastWatched: Using Firestore. Setting S${season} E${episode} at ${seconds}s, finished: ${finished}`);
-            setFirestoreDoc('lastWatched', { season, episode, seconds, finished });
-        } else {
-            console.log(`setLastWatched: Using Local Storage. Setting S${season} E${episode} at ${seconds}s, finished: ${finished}`);
-            setLastWatchedLocal(season, episode, seconds, finished);
         }
     }
 
