@@ -604,7 +604,6 @@
                         <select id="seasonSelect"></select>
                     </div>
                 </div>
-
                 <div class="control-group">
                     <label for="episodeSelect">Episode:</label>
                     <div class="select-wrapper">
@@ -612,18 +611,79 @@
                     </div>
                 </div>
             </div>
-            <button id="resumeLastBtn" class="action-button">
-                Continue Watching
-            </button>
+            <div class="resume-btn-desktop-wrapper">
+                <button id="resumeLastBtn" class="action-button">Continue Watching</button>
+            </div>
         </div>
+        <style>
+        /* Desktop: selection left, resume right, both on top of episode list, adjustable margin-bottom */
+        @media (min-width: 701px) {
+            .selection-row {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: flex-end;
+                margin-bottom: 30px; /* Adjustable */
+                gap: 20px;
+                width: 100%;
+            }
+            .selects-container-desktop {
+                flex: 1 1 auto;
+                display: flex;
+                gap: 20px;
+                align-items: flex-end;
+            }
+            .resume-btn-desktop-wrapper {
+                flex: 0 0 auto;
+                display: flex;
+                align-items: flex-end;
+                margin-left: 30px;
+                margin-bottom: 0; /* Adjustable */
+            }
+            #resumeLastBtn {
+                max-width: 400px;
+                width: auto;
+                margin: 0;
+                display: inline-block;
+                height: 100%;
+            }
+        }
+        /* Mobile: selects stacked, resume below, full width, adjustable margin */
+        @media (max-width: 700px) {
+            .selection-row {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+                margin-bottom: 10px; /* Adjustable */
+            }
+            .selects-container-desktop {
+                flex-direction: column;
+                width: 100%;
+                gap: 15px;
+            }
+            .resume-btn-desktop-wrapper {
+                display: flex !important;
+                width: 100%;
+                margin: 15px 0 15px 0; /* margin-top and margin-bottom adjustable */
+                justify-content: center;
+                align-items: center;
+            }
+            #resumeLastBtn {
+                width: 100%;
+                max-width: 100%;
+                margin: 0;
+                display: block;
+            }
+        }
+        </style>
 
-        <div id="episodeListContainer"></div>
-        <div class="episode-action-buttons">
+        <div id="episodeListContainer" style="margin-top: 30px;"></div>
+        <div class="episode-action-buttons" style="margin-top: 35px;">
             <button id="loadMoreBtn" class="action-button">
-                <i class="fas fa-plus-circle"></i> Load More
+            <i class="fas fa-plus-circle"></i> Load More
             </button>
             <button id="showLessBtn" class="action-button">
-                <i class="fas fa-minus-circle"></i> Show Less
+            <i class="fas fa-minus-circle"></i> Show Less
             </button>
         </div>
     </div>
@@ -632,11 +692,29 @@
 <div id="authModalOverlay" class="auth-modal-overlay">
     <div class="auth-modal-content">
         <button class="modal-close-btn" id="authModalCloseBtn">&times;</button>
-        <h3>Authentication</h3>
         <p id="loggedInUser"></p>
         <div class="auth-buttons">
             <a href="login.html" id="loginBtn" class="action-button">Login</a>
             <a href="login.html?mode=signup" id="signupBtn" class="action-button">Sign Up</a>
+            <style>
+                .auth-modal-content .auth-buttons {
+                    display: flex !important;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    margin-bottom: 2rem;
+                    gap: 15px;
+                    width: 100%;
+                }
+                .auth-modal-content {
+                    width: 110% !important;
+                    max-width: 440px !important;
+                }
+                .auth-modal-content .action-button {
+                    width: 80%;
+                    margin: 0 auto;
+                }
+            </style>
             <button id="logoutBtn" class="action-button" style="display: none;">Logout</button>
         </div>
     </div>
