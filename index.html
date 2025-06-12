@@ -760,7 +760,7 @@
                     </div>
                 </div>
             </div>
-            <button id="playBtn" class="action-button" onclick="playSelectedEpisode()">
+            <button id="playBtn" class="action-button" onclick="window.playSelectedEpisode()">
                 <i class="fas fa-play-circle"></i> Play
             </button>
             <button id="resumeLastBtn" class="action-button">
@@ -1216,7 +1216,7 @@
                 for (let e = 1; e <= numEpisodesInSeason; e++) {
                     const episodeStr = e.toString();
                     if (!episodeData[seasonStr][episodeStr]) {
-                        episodeData[seasonStr][episodeStr] = { title: `Season ${s}, Episode ${e}`, description: `This is a generic description for Season ${s}, Episode ${e}.`, image: PLACEHOLDER_IMAGE };
+                        episodeData[seasonStr][episodeStr] = { title: `Season ${s}, Episode ${e}`, description: `This is a generic description for Season ${s}, Episode ${e}.`, image: PLACEHPLDER_IMAGE };
                     }
                 }
             }
@@ -1270,7 +1270,8 @@
             episodeItem.className = 'episode-item-rm';
             episodeItem.dataset.season = season;
             episodeItem.dataset.episode = i;
-            episodeItem.onclick = () => selectEpisode(season, i);
+            // Use window.selectEpisode here
+            episodeItem.onclick = () => window.selectEpisode(season, i);
 
             // Check if episode is watched
             const watchedForSeason = getWatched()[season] || [];
@@ -1293,7 +1294,7 @@
                     <div class="episode-text-content">
                         <div class="episode-title-rm">${episode.title}</div>
                         <div class="episode-description-rm">${episode.description}</div>
-                        <button class="see-more-btn" onclick="event.stopPropagation(); toggleDescription(this);">See More</button>
+                        <button class="see-more-btn" onclick="event.stopPropagation(); window.toggleDescription(this);">See More</button>
                     </div>
                     <div class="episode-number-rm">${i}</div>
                 </div>
@@ -1350,16 +1351,16 @@
     });
 
     // --- Episode Selection and Playback ---
-    function selectEpisode(season, episode) {
+    window.selectEpisode = function(season, episode) {
         document.getElementById('seasonSelect').value = season;
         document.getElementById('episodeSelect').value = episode;
         currentSeason = season; // Update currentSeason when selected
         renderEpisodeSelect(); // Re-render episode select to update watched status
         renderEpisodeList(); // Re-render list to update active state
-        playSelectedEpisode(); // Auto-play the selected episode
+        window.playSelectedEpisode(); // Auto-play the selected episode
     }
 
-    function playSelectedEpisode() {
+    window.playSelectedEpisode = function() {
         const season = document.getElementById('seasonSelect').value;
         const episode = document.getElementById('episodeSelect').value;
         const videoPlayer = document.getElementById('videoPlayer');
@@ -1433,10 +1434,8 @@
                         // This assumes the embedded player sends messages on timeupdate
                         // This part is highly dependent on the 2embed.to player's behavior
                         // We'll simulate a simple progress update based on a timeout for now
-                        // In a real scenario, you'd listen for 'message' events from the iframe
+                        // Real implementation would involve messages from the iframe or estimating.
                         setInterval(() => {
-                            // This is a placeholder for actual progress detection.
-                            // Real implementation would involve messages from the iframe or estimating.
                             const currentProgress = getProgress()[season]?.[episode] || 0;
                             const newProgress = currentProgress + 10; // Simulate 10 seconds of progress
                             setProgress(season, episode, newProgress);
@@ -1530,13 +1529,11 @@
         renderEpisodeList(); // Update active state of selected episode
     });
 
-    function toggleDescription(button) {
+    window.toggleDescription = function(button) {
         const descriptionDiv = button.previousElementSibling;
         descriptionDiv.classList.toggle('expanded');
         button.textContent = descriptionDiv.classList.contains('expanded') ? 'See Less' : 'See More';
     }
-    // Make this function globally accessible for onclick in HTML
-    window.toggleDescription = toggleDescription;
 
 
     // --- Firebase Initialization and Auth State Management ---
