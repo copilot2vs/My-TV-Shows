@@ -760,9 +760,6 @@
                     </div>
                 </div>
             </div>
-            <button id="playBtn" class="action-button" onclick="playSelectedEpisode()">
-                <i class="fas fa-play-circle"></i> Play
-            </button>
             <button id="resumeLastBtn" class="action-button">
                 Continue Watching
             </button>
@@ -1440,9 +1437,24 @@
         updateResumeLastButton();
     }
 
-    function playSelectedEpisode() {
-        playEpisode(undefined, undefined, undefined, false);
-    }
+    // --- Play episode automatically when season or episode is changed ---
+    document.getElementById('seasonSelect').addEventListener('change', () => {
+        currentSeason = document.getElementById('seasonSelect').value;
+        isShowingAllEpisodes = false;
+        currentEpisodesDisplayed = EPISODES_DISPLAY_WINDOW_SIZE;
+        renderEpisodeSelect();
+        renderEpisodeList();
+        updateResumeLastButton();
+        // Auto-play the selected episode when season changes
+        playEpisode(undefined, currentSeason, document.getElementById('episodeSelect').value, false);
+    });
+    document.getElementById('episodeSelect').addEventListener('change', () => {
+        updateEpisodeSelectColor();
+        updateResumeLastButton();
+        // Auto-play the selected episode when episode changes
+        playEpisode(undefined, document.getElementById('seasonSelect').value, document.getElementById('episodeSelect').value, false);
+    });
+
 
     function markWatched(season, episode) {
         let watched = getWatched(); // Use the wrapped function
