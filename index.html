@@ -195,7 +195,7 @@
             font-size: 22px;
             cursor: pointer;
             transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
-            padding: 5px; /* Adjusted padding for icon */
+            padding: 5px;
             z-index: 10;
         }
         #clearDataBtn:hover {
@@ -227,6 +227,7 @@
 
         /* Auth Modal styles */
         .auth-modal-overlay {
+            /* display: none;  Removed: Control visibility with JS */
             position: fixed;
             top: 0;
             left: 0;
@@ -320,97 +321,6 @@
         #loggedInUser.visible {
             display: block;
         }
-
-        /* Custom Modal Overlay and Content Styles for notifications */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
-        }
-
-        .modal-overlay.visible {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .modal-content {
-            background: var(--bg-medium-charcoal);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 10px 20px var(--shadow-dark);
-            border: 1px solid var(--grey-border);
-            max-width: 400px;
-            width: 90%;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            transform: translateY(-20px);
-            transition: transform 0.3s ease-in-out;
-        }
-
-        .modal-overlay.visible .modal-content {
-            transform: translateY(0);
-        }
-
-        .modal-content h3 {
-            color: var(--white-off);
-            font-size: 1.8em;
-            margin-bottom: 10px;
-        }
-
-        .modal-content p {
-            color: var(--grey-text);
-            font-size: 1em;
-        }
-
-        .modal-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .modal-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.95em;
-            transition: background-color 0.2s, transform 0.2s;
-        }
-
-        .modal-btn.confirm-btn {
-            background-color: var(--blue-primary);
-            color: #fff;
-        }
-
-        .modal-btn.confirm-btn:hover {
-            background-color: var(--blue-active-border);
-            transform: translateY(-2px);
-        }
-
-        .modal-btn.cancel-btn {
-            background-color: var(--red-primary);
-            color: #fff;
-        }
-
-        .modal-btn.cancel-btn:hover {
-            background-color: #C53030;
-            transform: translateY(-2px);
-        }
-
 
         /* --- Episode grid/box styles like the image --- */
         #episodeListContainer {
@@ -603,7 +513,7 @@
         }
 
         .search-container button {
-            padding: 12px; /* Make it a square for the icon */
+            padding: 12px 20px;
             font-size: 1.1em;
             border-radius: 8px;
             border: none;
@@ -613,9 +523,6 @@
             color: #fff;
             box-shadow: var(--button-glow-light);
             transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
-            display: flex; /* Use flex to center icon */
-            justify-content: center;
-            align-items: center;
         }
 
         .search-container button:hover {
@@ -643,7 +550,6 @@
             border-bottom: 1px solid var(--grey-border);
             cursor: pointer;
             transition: background-color 0.2s;
-            text-align: left; /* Align text left */
         }
 
         .search-result-item:last-child {
@@ -654,25 +560,43 @@
             background-color: rgba(66, 153, 225, 0.1);
         }
 
-        /* Remove image and date for search results */
-        .search-result-item img,
-        .search-result-info p {
-            display: none;
+        .search-result-item img {
+            width: 80px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
         }
 
         .search-result-info {
             flex-grow: 1;
+            text-align: left;
         }
 
         .search-result-info h4 {
-            margin: 0;
+            margin: 0 0 5px 0;
             color: var(--white-off);
             font-size: 1.1em;
         }
 
-        /* Remove select button */
+        .search-result-info p {
+            margin: 0;
+            color: var(--grey-text);
+            font-size: 0.9em;
+        }
+
         .search-result-select-btn {
-            display: none;
+            padding: 8px 15px;
+            background-color: var(--blue-primary);
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .search-result-select-btn:hover {
+            background-color: var(--blue-active-border);
         }
 
         /* Responsive grid for mobile */
@@ -772,28 +696,27 @@
             }
 
             .search-container {
-                flex-direction: row; /* Keep on one line for mobile */
+                flex-direction: column;
                 max-width: 100%;
-                align-items: center; /* Center items vertically */
-                justify-content: center; /* Center items horizontally */
             }
             .search-container input[type="text"] {
-                width: auto; /* Let it grow naturally */
-                flex-grow: 1; /* Take remaining space */
-                min-width: 0; /* Allow shrinking */
-                padding: 8px 12px; /* Smaller padding */
-                font-size: 1em; /* Smaller font */
+                width: 100%;
             }
             .search-container button {
-                width: 40px; /* Fixed small width for icon button */
-                height: 40px; /* Fixed small height for icon button */
-                padding: 0; /* Remove padding */
-                font-size: 1.2em; /* Ensure icon is visible */
-                flex-shrink: 0; /* Prevent button from shrinking */
+                width: 100%;
             }
-            /* Hide the search button text on mobile */
-            .search-container button span {
-                display: none;
+            .search-result-item {
+                flex-direction: column;
+                text-align: center;
+            }
+            .search-result-item img {
+                width: 100%;
+                height: auto;
+                max-height: 150px;
+            }
+            .search-result-select-btn {
+                width: 100%;
+                margin-top: 10px;
             }
         }
     </style>
@@ -808,12 +731,11 @@
 
     <div class="search-container">
         <input type="text" id="showSearchInput" placeholder="Search for a TV Show...">
-        <button id="searchShowBtn"><i class="fas fa-search"></i></button>
+        <button id="searchShowBtn"><i class="fas fa-search"></i> Search</button>
     </div>
 
     <div id="searchResults">
-        <!-- Search results will be displayed here -->
-    </div>
+        </div>
 
     <div id="contentArea" class="content-area">
         <iframe id="videoPlayer" src="" frameborder="0" allowfullscreen></iframe>
@@ -967,26 +889,27 @@
     let firebaseInitialized = false; // Flag to indicate if firebase has been initialized successfully
 
     // Firestore data storage (will be updated by listeners)
-    let watchedData = {}; // { [tmdb_id]: { [season]: [episode1, episode2, ...] } }
-    let progressData = {}; // { [tmdb_id]: { [season]: { [episode]: seconds } } }
-    let lastWatchedData = {}; // { [tmdb_id]: { season: number, episode: number, seconds: number, finished: boolean } }
+    let watchedData = {};
+    let progressData = {};
+    let lastWatchedData = null;
 
-    // Local Storage Fallback Keys - now include TMDB ID to differentiate data for different shows
-    const WATCHED_KEY_PREFIX = 'tvShowWatched_';
-    const PROGRESS_KEY_PREFIX = 'tvShowProgress_';
-    const LAST_WATCHED_KEY_PREFIX = 'tvShowLastWatched_';
+    // Local Storage Fallback Keys
+    const WATCHED_KEY = 'americanDadWatched10min';
+    const PROGRESS_KEY = 'americanDadEpisodeProgress';
+    const LAST_WATCHED_KEY = 'americanDadLastWatched';
 
     // TMDB and Episode Data Constants
-    const PLACEHOLDER_IMAGE = 'https://placehold.co/160x90/1A1A1A/FFFFFF?text=NO+IMAGE';
+    const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/160x90/1A1A1A/FFFFFF?text=NO+IMAGE';
     const EPISODES_DISPLAY_WINDOW_SIZE = 10;
     const TMDB_API_KEY = 'd62d816a3f48ed18c1dc5e157f4d73b2'; // REMEMBER TO REPLACE WITH YOUR ACTUAL KEY
+    // Replace the below with your actual TMDB v4 API Read Access Token (starts with 'eyJ...')
     const TMDB_READ_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkNjJkODE2YTNmNDhlZDE4YzFkYzVlMTU3ZjRkNzNiMiIsIm5iZiI6MTc0OTYyMjI0MS4wMjQsInN1YiI6IjY4NDkxZGUxMDQ2NzYwZGI4YTlmNTg1ZCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.UXLSaRBtR2aOvUObbrT3C4ctJcNG6MXTDjh1gu8y2Ks';
-
+    
     // Default show ID and name, will be updated by search
     let currentTMDBShowId = 1433; // Default to American Dad
     let currentTMDBShowName = "American Dad!"; // Default show name
 
-    let episodeMetadata = {}; // Stores all fetched episode metadata for the current show
+    let episodeData = {};
     let totalSeasons = 20; // Default, will be updated by TMDB fetch
 
     let currentSeason = 1;
@@ -1008,12 +931,9 @@
         const modalCancelBtn = document.getElementById('modalCancelBtn');
         const modalCloseBtn = document.getElementById('modalCloseBtn');
 
-        // Hide all buttons by default
         modalConfirmBtn.style.display = 'none';
         modalCancelBtn.style.display = 'none';
         modalCloseBtn.style.display = 'none';
-
-        // Clear previous event listeners
         modalConfirmBtn.onclick = null;
         modalCancelBtn.onclick = null;
         modalCloseBtn.onclick = null;
@@ -1028,32 +948,32 @@
             modalCancelBtn.style.display = 'inline-block';
 
             modalConfirmBtn.onclick = () => {
-                modalOverlay.classList.remove('visible'); // Hide modal with transition
+                modalOverlay.style.display = 'none';
                 if (onConfirm) onConfirm(true);
             };
             modalCancelBtn.onclick = () => {
-                modalOverlay.classList.remove('visible'); // Hide modal with transition
+                modalOverlay.style.display = 'none';
                 if (onConfirm) onConfirm(false);
             };
-        } else { // type === 'alert'
+        } else {
             modalTitle.textContent = 'Notification';
             modalCloseBtn.textContent = 'Close';
             modalCloseBtn.onclick = () => {
-                modalOverlay.classList.remove('visible'); // Hide modal with transition
+                modalOverlay.style.display = 'none';
             };
             modalCloseBtn.style.display = 'inline-block';
         }
-        modalOverlay.classList.add('visible'); // Show modal with transition
+        modalOverlay.style.display = 'flex';
     }
 
 
     // --- Firebase Data Functions ---
-    // Fetches the entire data object (e.g., all watchedData for all shows)
-    async function getFirestoreAllData(collectionName) {
+    async function getFirestoreDoc(collectionName) {
         if (!userId || !db || !firebaseInitialized) {
             console.warn(`Attempted to get Firestore doc '${collectionName}' without userId or db initialized or firebase not ready.`);
             return null;
         }
+        // Use __app_id if available, otherwise a static ID for local development
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const docRef = doc(db, `artifacts/${appId}/users/${userId}/${collectionName}/data`);
         try {
@@ -1065,12 +985,12 @@
         }
     }
 
-    // Sets the entire data object (e.g., all watchedData for all shows)
-    async function setFirestoreAllData(collectionName, data) {
+    async function setFirestoreDoc(collectionName, data) {
         if (!userId || !db || !firebaseInitialized) {
             console.warn(`Attempted to set Firestore doc '${collectionName}' without userId or db initialized or firebase not ready.`);
             return;
         }
+        // Use __app_id if available, otherwise a static ID for local development
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const docRef = doc(db, `artifacts/${appId}/users/${userId}/${collectionName}/data`);
         try {
@@ -1083,8 +1003,7 @@
     // --- Local Storage Fallback Functions ---
     function getWatchedLocal() {
         try {
-            const stored = localStorage.getItem(WATCHED_KEY_PREFIX + currentTMDBShowId);
-            return stored ? JSON.parse(stored) : {};
+            return JSON.parse(localStorage.getItem(WATCHED_KEY)) || {};
         } catch (e) {
             console.error("Error parsing local watched data:", e);
             return {};
@@ -1093,7 +1012,7 @@
 
     function setWatchedLocal(watched) {
         try {
-            localStorage.setItem(WATCHED_KEY_PREFIX + currentTMDBShowId, JSON.stringify(watched));
+            localStorage.setItem(WATCHED_KEY, JSON.stringify(watched));
         } catch (e) {
             console.error("Error setting local watched data:", e);
         }
@@ -1101,8 +1020,7 @@
 
     function getProgressLocal() {
         try {
-            const stored = localStorage.getItem(PROGRESS_KEY_PREFIX + currentTMDBShowId);
-            return stored ? JSON.parse(stored) : {};
+            return JSON.parse(localStorage.getItem(PROGRESS_KEY)) || {};
         } catch (e) {
             console.error("Error parsing local progress data:", e);
             return {};
@@ -1111,7 +1029,7 @@
 
     function setProgressLocal(progress) {
         try {
-            localStorage.setItem(PROGRESS_KEY_PREFIX + currentTMDBShowId, JSON.stringify(progress));
+            localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
         } catch (e) {
             console.error("Error setting local progress data:", e);
         }
@@ -1119,8 +1037,7 @@
 
     function getLastWatchedLocal() {
         try {
-            const stored = localStorage.getItem(LAST_WATCHED_KEY_PREFIX + currentTMDBShowId);
-            return stored ? JSON.parse(stored) : null;
+            return JSON.parse(localStorage.getItem(LAST_WATCHED_KEY));
         } catch (e) {
             console.error("Error parsing local last watched data:", e);
             return null;
@@ -1129,70 +1046,66 @@
 
     function setLastWatchedLocal(season, episode, seconds, finished) {
         try {
-            localStorage.setItem(LAST_WATCHED_KEY_PREFIX + currentTMDBShowId, JSON.stringify({ season, episode, seconds, finished }));
+            localStorage.setItem(LAST_WATCHED_KEY, JSON.stringify({ season, episode, seconds, finished }));
         } catch (e) {
             console.error("Error setting local last watched data:", e);
         }
     }
 
     // --- Wrapped Data Access Functions (to use Firestore if logged in, else Local Storage) ---
-    // These functions now return/set the data for the currentTMDBShowId
-    function getWatchedCurrentShow() {
+    function getWatched() {
+        // Always use Firestore if logged in, otherwise use Local Storage
         if (userId && isAuthReady && firebaseInitialized) {
-            return watchedData[currentTMDBShowId] || {};
+            return watchedData;
         }
         return getWatchedLocal();
     }
 
-    function setWatchedCurrentShow(watchedForThisShow) {
+    function setWatched(watched) {
         if (userId && isAuthReady && firebaseInitialized && db) {
-            watchedData[currentTMDBShowId] = watchedForThisShow;
-            setFirestoreAllData('watched', watchedData); // Save the entire object
+            watchedData = watched; // update in-memory
+            setFirestoreDoc('watched', watched);
         } else {
-            setWatchedLocal(watchedForThisShow);
+            setWatchedLocal(watched);
         }
     }
 
-    function getProgressCurrentShow() {
+    function getProgress() {
         if (userId && isAuthReady && firebaseInitialized) {
-            return progressData[currentTMDBShowId] || {};
+            return progressData;
         }
         return getProgressLocal();
     }
 
-    function setProgressCurrentShow(progressForThisShow) {
+    function setProgress(progress) {
         if (userId && isAuthReady && firebaseInitialized && db) {
-            progressData[currentTMDBShowId] = progressForThisShow;
-            setFirestoreAllData('progress', progressData); // Save the entire object
+            progressData = progress; // update in-memory
+            setFirestoreDoc('progress', progress);
         } else {
-            setProgressLocal(progressForThisShow);
+            setProgressLocal(progress);
         }
     }
 
-    function getLastWatchedCurrentShow() {
+    function getLastWatched() {
         if (userId && isAuthReady && firebaseInitialized) {
-            return lastWatchedData[currentTMDBShowId] || null;
+            return lastWatchedData;
         }
         return getLastWatchedLocal();
     }
 
-    function setLastWatchedCurrentShow(season, episode, seconds, finished) {
+    function setLastWatched(season, episode, seconds, finished) {
         if (userId && isAuthReady && firebaseInitialized && db) {
-            if (!lastWatchedData[currentTMDBShowId]) {
-                lastWatchedData[currentTMDBShowId] = {};
-            }
-            lastWatchedData[currentTMDBShowId] = { season, episode, seconds, finished };
-            setFirestoreAllData('lastWatched', lastWatchedData); // Save the entire object
+            lastWatchedData = { season, episode, seconds, finished }; // update in-memory
+            setFirestoreDoc('lastWatched', { season, episode, seconds, finished });
         } else {
             setLastWatchedLocal(season, episode, seconds, finished);
         }
     }
 
-
     // --- Firestore Listeners: Always update UI on change ---
     function setupFirestoreListeners() {
         if (!db || !userId || !firebaseInitialized) return;
-
+        // Use __app_id if available, otherwise a static ID for local development
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const watchedDocRef = doc(db, `artifacts/${appId}/users/${userId}/watched/data`);
         const progressDocRef = doc(db, `artifacts/${appId}/users/${userId}/progress/data`);
@@ -1204,7 +1117,6 @@
             } else {
                 watchedData = {};
             }
-            // Trigger UI updates only for the current show if data for it changed
             renderEpisodeSelect();
             renderEpisodeList();
             updateResumeLastButton();
@@ -1216,6 +1128,7 @@
             } else {
                 progressData = {};
             }
+            // Always update UI
             renderEpisodeSelect();
             renderEpisodeList();
             updateResumeLastButton();
@@ -1225,85 +1138,75 @@
             if (docSnap.exists()) {
                 lastWatchedData = JSON.parse(docSnap.data().value);
             } else {
-                lastWatchedData = {};
+                lastWatchedData = null;
             }
             updateResumeLastButton();
         }, (error) => console.error("Error watching last watched data:", error));
     }
 
-
     // --- Always migrate local data to Firestore on login (merge) ---
     async function migrateLocalDataToFirestore() {
         if (!isAuthReady || !userId || !db || !firebaseInitialized) return;
 
-        const localWatchedKeys = Object.keys(localStorage).filter(key => key.startsWith(WATCHED_KEY_PREFIX));
-        const localProgressKeys = Object.keys(localStorage).filter(key => key.startsWith(PROGRESS_KEY_PREFIX));
-        const localLastWatchedKeys = Object.keys(localStorage).filter(key => key.startsWith(LAST_WATCHED_KEY_PREFIX));
+        const localWatched = getWatchedLocal();
+        const localProgress = getProgressLocal();
+        const localLastWatched = getLastWatchedLocal();
 
-        let mergedWatched = await getFirestoreAllData('watched') || {};
-        let mergedProgress = await getFirestoreAllData('progress') || {};
-        let mergedLastWatched = await getFirestoreAllData('lastWatched') || {};
-
-        // Migrate watched data
-        localWatchedKeys.forEach(key => {
-            const tmdbId = key.substring(WATCHED_KEY_PREFIX.length);
-            const localShowWatched = JSON.parse(localStorage.getItem(key));
-            if (!mergedWatched[tmdbId]) {
-                mergedWatched[tmdbId] = {};
-            }
-            // Merge watched episodes (arrays)
-            for (const season in localShowWatched) {
-                mergedWatched[tmdbId][season] = Array.from(new Set([...(mergedWatched[tmdbId][season] || []), ...(localShowWatched[season] || [])]));
-            }
-            localStorage.removeItem(key);
-        });
-
-        // Migrate progress data
-        localProgressKeys.forEach(key => {
-            const tmdbId = key.substring(PROGRESS_KEY_PREFIX.length);
-            const localShowProgress = JSON.parse(localStorage.getItem(key));
-            if (!mergedProgress[tmdbId]) {
-                mergedProgress[tmdbId] = {};
-            }
-            // Prefer the higher progress for each episode
-            for (const season in localShowProgress) {
-                if (!mergedProgress[tmdbId][season]) mergedProgress[tmdbId][season] = {};
-                for (const episode in localShowProgress[season]) {
-                    const localVal = localShowProgress[season][episode];
-                    const remoteVal = (mergedProgress[tmdbId][season] && mergedProgress[tmdbId][season][episode]) || 0;
-                    mergedProgress[tmdbId][season][episode] = Math.max(localVal, remoteVal);
+        // Merge local data into Firestore, always prefer the most recent progress/lastWatched
+        if (Object.keys(localWatched).length > 0) {
+            try {
+                const firestoreWatched = await getFirestoreDoc('watched') || {};
+                const merged = { ...firestoreWatched };
+                for (const s in localWatched) {
+                    merged[s] = Array.from(new Set([...(firestoreWatched[s] || []), ...(localWatched[s] || [])]));
                 }
+                await setFirestoreDoc('watched', merged);
+                localStorage.removeItem(WATCHED_KEY);
+            } catch (error) {
+                console.error("Error migrating watched data:", error);
             }
-            localStorage.removeItem(key);
-        });
+        }
 
-        // Migrate last watched data
-        localLastWatchedKeys.forEach(key => {
-            const tmdbId = key.substring(LAST_WATCHED_KEY_PREFIX.length);
-            const localShowLastWatched = JSON.parse(localStorage.getItem(key));
-            if (localShowLastWatched) {
-                // Prefer the local if it's more recent or more progressed
-                const remoteShowLastWatched = mergedLastWatched[tmdbId] || null;
+        if (Object.keys(localProgress).length > 0) {
+            try {
+                const firestoreProgress = await getFirestoreDoc('progress') || {};
+                // Prefer the higher progress for each episode
+                const merged = { ...firestoreProgress };
+                for (const season in localProgress) {
+                    if (!merged[season]) merged[season] = {};
+                    for (const episode in localProgress[season]) {
+                        const localVal = localProgress[season][episode];
+                        const remoteVal = (firestoreProgress[season] && firestoreProgress[season][episode]) || 0;
+                        merged[season][episode] = Math.max(localVal, remoteVal);
+                    }
+                }
+                await setFirestoreDoc('progress', merged);
+                localStorage.removeItem(PROGRESS_KEY);
+            } catch (error) {
+                console.error("Error migrating progress data:", error);
+            }
+        }
+
+        if (localLastWatched) {
+            try {
+                // Always prefer the latest local lastWatched if it's more recent
+                const firestoreLastWatched = await getFirestoreDoc('lastWatched');
                 let shouldUpdate = true;
-                if (remoteShowLastWatched) {
-                    const localProgress = localShowLastWatched.seconds || 0;
-                    const remoteProgress = (mergedProgress[tmdbId]?.[remoteShowLastWatched.season]?.[remoteShowLastWatched.episode]) || remoteShowLastWatched.seconds || 0;
-                    shouldUpdate = localProgress > remoteProgress;
+                if (firestoreLastWatched && firestoreLastWatched.season && firestoreLastWatched.episode) {
+                    // If both exist, prefer the one with higher progress or more recent
+                    const localProgress = getProgressLocal();
+                    const remoteProgress = await getFirestoreDoc('progress') || {};
+                    const localSec = (localProgress[localLastWatched.season] && localProgress[localLastWatched.episode]) || localLastWatched.seconds || 0;
+                    const remoteSec = (remoteProgress[firestoreLastWatched.season] && remoteProgress[firestoreLastWatched.season][firestoreLastWatched.episode]) || firestoreLastWatched.seconds || 0;
+                    shouldUpdate = localSec > remoteSec;
                 }
                 if (shouldUpdate) {
-                    mergedLastWatched[tmdbId] = localShowLastWatched;
+                    await setFirestoreDoc('lastWatched', localLastWatched);
                 }
+                localStorage.removeItem(LAST_WATCHED_KEY);
+            } catch (error) {
+                console.error("Error migrating last watched data:", error);
             }
-            localStorage.removeItem(key);
-        });
-
-        try {
-            if (Object.keys(mergedWatched).length > 0) await setFirestoreAllData('watched', mergedWatched);
-            if (Object.keys(mergedProgress).length > 0) await setFirestoreAllData('progress', mergedProgress);
-            if (Object.keys(mergedLastWatched).length > 0) await setFirestoreAllData('lastWatched', mergedLastWatched);
-            console.log("Local data migrated to Firebase.");
-        } catch (error) {
-            console.error("Error migrating data to Firebase:", error);
         }
     }
 
@@ -1364,13 +1267,13 @@
             }
 
             const seasons = await Promise.all(seasonPromises);
-            episodeMetadata = {}; // Reset episode metadata for the new show
+            episodeData = {};
             seasons.forEach((seasonObj) => {
                 const seasonNum = seasonObj?.season_number?.toString();
                 if (seasonNum && seasonObj.episodes) {
-                    episodeMetadata[seasonNum] = {};
+                    episodeData[seasonNum] = {};
                     seasonObj.episodes.forEach(ep => {
-                        episodeMetadata[seasonNum][ep.episode_number.toString()] = {
+                        episodeData[seasonNum][ep.episode_number.toString()] = {
                             title: ep.name || `Episode ${ep.episode_number}`,
                             description: ep.overview || 'Description not available.',
                             image: ep.still_path ? `https://image.tmdb.org/t/p/w300${ep.still_path}` : PLACEHOLDER_IMAGE
@@ -1382,14 +1285,14 @@
             // Fallback for seasons with no episodes or to ensure a minimum number of episodes
             for (let s = 1; s <= totalSeasons; s++) {
                 const seasonStr = s.toString();
-                if (!episodeMetadata[seasonStr]) {
-                    episodeMetadata[seasonStr] = {};
+                if (!episodeData[seasonStr]) {
+                    episodeData[seasonStr] = {};
                 }
-                const numEpisodesInSeason = Object.keys(episodeMetadata[seasonStr]).length > 0 ? Object.keys(episodeMetadata[seasonStr]).length : 22;
+                const numEpisodesInSeason = Object.keys(episodeData[seasonStr]).length > 0 ? Object.keys(episodeData[seasonStr]).length : 22;
                 for (let e = 1; e <= numEpisodesInSeason; e++) {
                     const episodeStr = e.toString();
-                    if (!episodeMetadata[seasonStr][episodeStr]) {
-                        episodeMetadata[seasonStr][episodeStr] = {
+                    if (!episodeData[seasonStr][episodeStr]) {
+                        episodeData[seasonStr][episodeStr] = {
                             title: `Season ${s}, Episode ${e}`,
                             description: `This is a generic description for Season ${s}, Episode ${e}.`,
                             image: PLACEHOLDER_IMAGE
@@ -1398,32 +1301,13 @@
                 }
             }
 
-            // Set current season to 1 and episode to 1 for a new show if no last watched exists
-            const lastWatched = getLastWatchedCurrentShow();
-            if (lastWatched && lastWatched.season && lastWatched.episode) {
-                currentSeason = lastWatched.season;
-                document.getElementById('seasonSelect').value = currentSeason;
-            } else {
-                currentSeason = 1;
-                document.getElementById('seasonSelect').value = 1;
-            }
-
-
+            currentSeason = document.getElementById('seasonSelect').value;
             renderEpisodeSelect();
             renderEpisodeList();
             updateResumeLastButton();
-            // Automatically play the last watched or S1E1 for the new show
-            if (lastWatched && lastWatched.season && lastWatched.episode) {
-                updateVideoPlayer();
-            } else {
-                // If no last watched, start S1E1
-                document.getElementById('episodeSelect').value = 1;
-                updateVideoPlayer();
-            }
 
         } catch (e) {
             console.error('Error loading episode data from TMDB API:', e);
-            showCustomModal('Failed to load show data. Displaying generic content.', 'alert');
             // Populate dropdowns with default values even if TMDB fails
             const seasonSelect = document.getElementById('seasonSelect');
             if (seasonSelect.options.length === 0) {
@@ -1436,14 +1320,14 @@
             }
             for (let s = 1; s <= totalSeasons; s++) {
                 const seasonStr = s.toString();
-                if (!episodeMetadata[seasonStr]) {
-                    episodeMetadata[seasonStr] = {};
+                if (!episodeData[seasonStr]) {
+                    episodeData[seasonStr] = {};
                 }
-                const numEpisodesInSeason = Object.keys(episodeMetadata[seasonStr]).length > 0 ? Object.keys(episodeMetadata[seasonStr]).length : 22;
+                const numEpisodesInSeason = Object.keys(episodeData[seasonStr]).length > 0 ? Object.keys(episodeData[seasonStr]).length : 22;
                 for (let e = 1; e <= numEpisodesInSeason; e++) {
                     const episodeStr = e.toString();
-                    if (!episodeMetadata[seasonStr][episodeStr]) {
-                        episodeMetadata[seasonStr][episodeStr] = {
+                    if (!episodeData[seasonStr][episodeStr]) {
+                        episodeData[seasonStr][episodeStr] = {
                             title: `Season ${s}, Episode ${e}`,
                             description: `This is a generic description for Season ${s}, Episode ${e}.`,
                             image: PLACEHOLDER_IMAGE
@@ -1462,7 +1346,7 @@
         const season = document.getElementById('seasonSelect').value;
         const episodeSelect = document.getElementById('episodeSelect');
         episodeSelect.innerHTML = '';
-        const episodesInCurrentSeason = episodeMetadata[season] ? Object.keys(episodeMetadata[season]).length : 0;
+        const episodesInCurrentSeason = episodeData[season] ? Object.keys(episodeData[season]).length : 0;
         const numEpisodesToRender = episodesInCurrentSeason > 0 ? episodesInCurrentSeason : 22;
 
         for (let i = 1; i <= numEpisodesToRender; i++) {
@@ -1476,15 +1360,15 @@
 
     function updateEpisodeSelectColor() {
         const season = document.getElementById('seasonSelect').value;
-        const watched = getWatchedCurrentShow(); // Get watched data for current show
+        const watched = getWatched();
         const episodeSelect = document.getElementById('episodeSelect');
 
         for (let i = 0; i < episodeSelect.options.length; i++) {
             episodeSelect.options[i].classList.remove('watched-option');
             episodeSelect.options[i].style.background = '';
             episodeSelect.options[i].style.color = '';
-            const episodeNum = parseInt(episodeSelect.options[i].value); // Parse to integer
-            if (watched[season] && watched[season].includes(episodeNum)) {
+            const episodeNum = episodeSelect.options[i].value;
+            if (watched[season] && watched[season].includes(parseInt(episodeNum))) {
                 episodeSelect.options[i].classList.add('watched-option');
             }
         }
@@ -1495,7 +1379,7 @@
         const episodeListContainer = document.getElementById('episodeListContainer');
         episodeListContainer.innerHTML = ''; // Clear existing episodes
 
-        const episodesInSeason = episodeMetadata[season] || {};
+        const episodesInSeason = episodeData[season] || {};
         const episodeNumbers = Object.keys(episodesInSeason).map(Number).sort((a, b) => a - b);
 
         const numEpisodesToDisplay = isShowingAllEpisodes ? episodeNumbers.length : EPISODES_DISPLAY_WINDOW_SIZE;
@@ -1512,7 +1396,7 @@
             episodeItem.dataset.season = season;
             episodeItem.dataset.episode = episodeNum;
 
-            const watched = getWatchedCurrentShow(); // Get watched data for current show
+            const watched = getWatched();
             if (watched[season] && watched[season].includes(episodeNum)) {
                 episodeItem.classList.add('watched');
             }
@@ -1572,56 +1456,46 @@
         const episode = document.getElementById('episodeSelect').value;
         const videoPlayer = document.getElementById('videoPlayer');
 
-        // Check if there's progress for this episode for the current show
-        const progress = getProgressCurrentShow();
+        // Check if there's progress for this episode
+        const progress = getProgress();
         let startTime = 0;
         if (progress[season] && progress[season][episode]) {
             startTime = progress[season][episode];
         }
 
-        // Changed to vidfast.pro
-        const url = `https://vidfast.pro/tv/${currentTMDBShowId}/${season}/${episode}?autoPlay=true&nextButton=true&autoNext=true&theme=#1e90ff`;
-        if (startTime > 0) {
-            videoPlayer.src = `${url}#${startTime}`; // Append start time if > 0
-        } else {
-            videoPlayer.src = url;
-        }
+        const url = `https://vidsrc.me/embed/tv?tmdb=${currentTMDBShowId}&season=${season}&episode=${episode}#${startTime}`;
+        videoPlayer.src = url;
 
         // Mark as watched after playing for a certain duration (e.g., 10 seconds)
-        // Removed `showCustomModal` for "marked as watched" notification
         const markWatchedTimeout = setTimeout(() => {
-            let watched = getWatchedCurrentShow(); // Get watched data for current show
+            let watched = getWatched();
             if (!watched[season]) {
                 watched[season] = [];
             }
             if (!watched[season].includes(parseInt(episode))) {
                 watched[season].push(parseInt(episode));
-                setWatchedCurrentShow(watched); // Set watched data for current show
+                setWatched(watched);
                 updateEpisodeSelectColor();
                 renderEpisodeList(); // Update episode list for watched status
+                showCustomModal(`Season ${season}, Episode ${episode} marked as watched!`, 'alert');
             }
         }, 10000); // Mark as watched after 10 seconds
 
-        // Save last watched episode for the current show
-        setLastWatchedCurrentShow(season, episode, startTime, false);
+        // Save last watched episode
+        setLastWatched(season, episode, startTime, false);
         updateResumeLastButton();
     }
 
     function updateResumeLastButton() {
         const resumeLastBtn = document.getElementById('resumeLastBtn');
-        const lastWatched = getLastWatchedCurrentShow(); // Get last watched for current show
-
-        if (lastWatched && lastWatched.season && lastWatched.episode && lastWatched.seconds > 0 && !lastWatched.finished) {
+        const lastWatched = getLastWatched();
+        if (lastWatched && lastWatched.season && lastWatched.episode) {
             resumeLastBtn.textContent = `Continue S${lastWatched.season} E${lastWatched.episode}`;
-            resumeLastBtn.onclick = () => selectEpisode(lastWatched.season, lastWatched.episode);
+            resumeLastBtn.style.display = 'inline-block';
         } else {
-            // If no last watched, or it was finished, default to Start S1 E1
-            resumeLastBtn.textContent = `Start S1 E1`;
-            resumeLastBtn.onclick = () => selectEpisode(1, 1);
+            resumeLastBtn.style.display = 'none';
         }
-        resumeLastBtn.style.display = 'inline-block'; // Always display the button
     }
-
 
     // --- Event Listeners ---
     document.getElementById('seasonSelect').addEventListener('change', () => {
@@ -1638,54 +1512,29 @@
         renderEpisodeList(); // Re-render to update active state
     });
 
-    // Clear Data Button
+    document.getElementById('resumeLastBtn').addEventListener('click', () => {
+        const lastWatched = getLastWatched();
+        if (lastWatched) {
+            selectEpisode(lastWatched.season, lastWatched.episode);
+        } else {
+            showCustomModal('No last watched episode found.', 'alert');
+        }
+    });
+
     document.getElementById('clearDataBtn').addEventListener('click', () => {
-        showCustomModal('Are you sure you want to clear all watched data and progress for all shows? This cannot be undone.', 'confirm', async (response) => {
-            if (response) {
-                let clearedCloud = false;
-                if (userId && db && firebaseInitialized) { // Only clear Firestore if a user is logged in
-                    try {
-                        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-                        await setDoc(doc(db, `artifacts/${appId}/users/${userId}/watched/data`), { value: JSON.stringify({}) });
-                        await setDoc(doc(db, `artifacts/${appId}/users/${userId}/progress/data`), { value: JSON.stringify({}) });
-                        await setDoc(doc(db, `artifacts/${appId}/users/${userId}/lastWatched/data`), { value: JSON.stringify({}) }); // Clear all last watched
-                        console.log("Firestore data cleared for user:", userId);
-                        clearedCloud = true;
-                    } catch (error) {
-                        console.error("Error clearing Firestore data:", error);
-                        showCustomModal('Error clearing cloud data. Please try again.', 'alert');
-                    }
-                }
-
-                // Always clear local storage data and cookies for all shows
-                Object.keys(localStorage).forEach(key => {
-                    if (key.startsWith(WATCHED_KEY_PREFIX) || key.startsWith(PROGRESS_KEY_PREFIX) || key.startsWith(LAST_WATCHED_KEY_PREFIX)) {
-                        localStorage.removeItem(key);
-                    }
-                });
-                document.cookie.split(";").forEach(function(c) {
-                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-                });
-                console.log("Local storage and cookies cleared.");
-
-                watchedData = {}; // Reset in-memory data
+        showCustomModal('Are you sure you want to clear all local data?', 'confirm', (confirmed) => {
+            if (confirmed) {
+                localStorage.removeItem(WATCHED_KEY);
+                localStorage.removeItem(PROGRESS_KEY);
+                localStorage.removeItem(LAST_WATCHED_KEY);
+                watchedData = {};
                 progressData = {};
-                lastWatchedData = {};
-
-                isShowingAllEpisodes = false;
-                currentEpisodesDisplayed = EPISODES_DISPLAY_WINDOW_SIZE;
+                lastWatchedData = null;
                 renderEpisodeSelect();
                 renderEpisodeList();
                 updateResumeLastButton();
                 document.getElementById('videoPlayer').src = ''; // Clear video
-
-                if (clearedCloud) {
-                     showCustomModal('All data (local and cloud) has been cleared.', 'alert');
-                } else {
-                    showCustomModal('All local data has been cleared. Cloud data was not cleared as you were not logged in or Firebase was not initialized.', 'alert');
-                }
-
-                if (window.watchTimer) clearInterval(window.watchTimer);
+                showCustomModal('All local data cleared!', 'alert');
             }
         });
     });
@@ -1707,9 +1556,7 @@
         if (query) {
             searchShows(query);
         } else {
-            // Removed specific alert "Please enter a show name to search."
-            searchResultsDiv.innerHTML = '<p style="color: var(--grey-text);">Please enter a show name.</p>';
-            searchResultsDiv.style.display = 'block';
+            showCustomModal('Please enter a show name to search.', 'alert');
         }
     });
 
@@ -1720,7 +1567,7 @@
     });
 
     async function searchShows(query) {
-        searchResultsDiv.innerHTML = '<p style="color: var(--grey-text);">Searching...</p>';
+        searchResultsDiv.innerHTML = '<p>Searching...</p>';
         searchResultsDiv.style.display = 'block';
         try {
             const response = await fetch(`https://api.themoviedb.org/3/search/tv?query=${encodeURIComponent(query)}&api_key=${TMDB_API_KEY}`);
@@ -1731,27 +1578,38 @@
             displaySearchResults(data.results);
         } catch (error) {
             console.error('Error searching shows:', error);
-            searchResultsDiv.innerHTML = '<p style="color: var(--red-primary);">Error searching for shows. Please try again.</p>';
+            searchResultsDiv.innerHTML = '<p>Error searching for shows. Please try again.</p>';
         }
     }
 
     function displaySearchResults(results) {
         searchResultsDiv.innerHTML = '';
         if (results.length === 0) {
-            searchResultsDiv.innerHTML = '<p style="color: var(--grey-text);">No results found.</p>';
+            searchResultsDiv.innerHTML = '<p>No results found.</p>';
             return;
         }
 
         results.forEach(show => {
+            const releaseYear = show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A';
+            const posterPath = show.poster_path ? `https://image.tmdb.org/t/p/w92${show.poster_path}` : PLACEHOLDER_IMAGE;
+
             const resultItem = document.createElement('div');
             resultItem.classList.add('search-result-item');
-            // Display only the show name
-            resultItem.innerHTML = `<h4>${show.name}</h4>`;
+            resultItem.innerHTML = `
+                <img src="${posterPath}" alt="${show.name} Poster" onerror="this.onerror=null; this.src='${PLACEHOLDER_IMAGE}';">
+                <div class="search-result-info">
+                    <h4>${show.name}</h4>
+                    <p>First Air Date: ${releaseYear}</p>
+                </div>
+                <button class="search-result-select-btn" data-tmdb-id="${show.id}" data-show-name="${show.name}">Select</button>
+            `;
             searchResultsDiv.appendChild(resultItem);
 
-            resultItem.addEventListener('click', () => {
-                currentTMDBShowId = show.id;
-                currentTMDBShowName = show.name;
+            resultItem.querySelector('.search-result-select-btn').addEventListener('click', (event) => {
+                const selectedTmdbId = event.target.dataset.tmdbId;
+                const selectedShowName = event.target.dataset.showName;
+                currentTMDBShowId = selectedTmdbId;
+                currentTMDBShowName = selectedShowName;
                 searchResultsDiv.style.display = 'none'; // Hide search results
                 showSearchInput.value = ''; // Clear search input
                 fetchEpisodeData(); // Load data for the newly selected show
@@ -1761,7 +1619,7 @@
 
     // --- Firebase Initialization ---
     document.addEventListener('DOMContentLoaded', async () => {
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
         const loggedInUserDiv = document.getElementById('loggedInUser');
         const loginBtn = document.getElementById('loginBtn');
         const signupBtn = document.getElementById('signupBtn');
@@ -1794,7 +1652,7 @@
         }
 
         try {
-            if (firebaseConfig && Object.keys(firebaseConfig).length > 0 && firebaseConfig.apiKey && firebaseConfig.apiKey !== "YOUR_API_KEY_HERE") {
+            if (firebaseConfig) {
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
@@ -1805,17 +1663,17 @@
                     isAuthReady = true; // Auth state has been checked
                     if (user) {
                         userId = user.uid;
-                        loggedInUserDiv.textContent = `Logged in as: ${user.email || 'Anonymous'} (ID: ${userId})`;
+                        loggedInUserDiv.textContent = `Logged in as: ${user.email || 'Anonymous'}`;
                         loggedInUserDiv.classList.add('visible');
                         loginBtn.style.display = 'none';
                         signupBtn.style.display = 'none';
                         logoutBtn.style.display = 'inline-block';
                         document.getElementById('clearDataBtn').style.display = 'none'; // Hide clear local data button
 
-                        // Load all data from Firestore
-                        watchedData = await getFirestoreAllData('watched') || {};
-                        progressData = await getFirestoreAllData('progress') || {};
-                        lastWatchedData = await getFirestoreAllData('lastWatched') || {};
+                        // Fetch Firestore data
+                        watchedData = await getFirestoreDoc('watched') || {};
+                        progressData = await getFirestoreDoc('progress') || {};
+                        lastWatchedData = await getFirestoreDoc('lastWatched');
 
                         // Migrate local data to Firestore on successful login
                         await migrateLocalDataToFirestore();
@@ -1831,63 +1689,20 @@
                         logoutBtn.style.display = 'none';
                         document.getElementById('clearDataBtn').style.display = 'inline-block'; // Allow clearing local data
 
-                        // Clear global Firebase data, rely on local for current show
-                        watchedData = {};
-                        progressData = {};
-                        lastWatchedData = {};
+                        // Load data from local storage immediately
+                        watchedData = getWatchedLocal();
+                        progressData = getProgressLocal();
+                        lastWatchedData = getLastWatchedLocal();
                     }
-                    // Always fetch episode data for the current show, regardless of Firebase status, to populate the UI
+                    // Always fetch episode data, regardless of Firebase status, to populate the UI
                     fetchEpisodeData();
                 });
-
-                // Attempt initial sign-in: first with custom token if available, then anonymously
-                if (!auth.currentUser) {
-                    try {
-                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                            await signInWithCustomToken(auth, __initial_auth_token);
-                            console.log("Attempted sign-in with custom token.");
-                        } else {
-                            await signInAnonymously(auth);
-                            console.log("Attempted anonymous sign-in.");
-                        }
-                    } catch (initialSignInError) {
-                        console.error("Error during initial sign-in (anonymous or custom token):", initialSignInError.code, initialSignInError.message);
-                        if (initialSignInError.code === 'auth/admin-restricted-operation') {
-                             showCustomModal("Anonymous authentication is not enabled in your Firebase project. Please enable it in Firebase console (Authentication -> Sign-in method -> Anonymous). Running in local-only mode.", "alert");
-                             firebaseInitialized = false;
-                             isAuthReady = true;
-                             userId = null;
-                             loggedInUserDiv.textContent = 'Running in local mode (ID: anonymous)';
-                             loggedInUserDiv.classList.add('visible');
-                             loginBtn.style.display = 'inline-block';
-                             signupBtn.style.display = 'inline-block';
-                             logoutBtn.style.display = 'none';
-                             document.getElementById('clearDataBtn').style.display = 'inline-block';
-                        } else {
-                            showCustomModal(`Initial authentication failed: ${initialSignInError.message}. Running in local-only mode.`, "alert");
-                            firebaseInitialized = false;
-                            isAuthReady = true;
-                            userId = null;
-                            loggedInUserDiv.textContent = 'Running in local mode (ID: anonymous)';
-                            loggedInUserDiv.classList.add('visible');
-                            loginBtn.style.display = 'inline-block';
-                            signupBtn.style.display = 'inline-block';
-                            logoutBtn.style.display = 'none';
-                            document.getElementById('clearDataBtn').style.display = 'inline-block';
-                        }
-                        // Load local data in case of Firebase auth failure
-                        watchedData = {}; // Clear global Firebase data
-                        progressData = {};
-                        lastWatchedData = {};
-                    }
-                }
-
             } else {
-                console.warn("Firebase config not found or incomplete. Running in local-only mode.");
+                console.warn("Firebase config not found. Running in local-only mode.");
                 // Fallback to local-only mode if Firebase config is missing
                 firebaseInitialized = false;
                 isAuthReady = true; // Mark auth ready even if Firebase failed
-                userId = null; // No user ID in local-only mode
+                userId = null; // No user ID
                 loggedInUserDiv.textContent = 'Running in local mode (ID: anonymous)';
                 loggedInUserDiv.classList.add('visible');
                 loginBtn.style.display = 'inline-block'; // Keep login/signup visible for potential future setup
@@ -1895,10 +1710,10 @@
                 logoutBtn.style.display = 'none';
                 document.getElementById('clearDataBtn').style.display = 'inline-block'; // Allow clearing local data
 
-                // Load data from local storage for current show
-                watchedData = {}; // Clear global Firebase data
-                progressData = {};
-                lastWatchedData = {};
+                // Load data from local storage immediately
+                watchedData = getWatchedLocal();
+                progressData = getProgressLocal();
+                lastWatchedData = getLastWatchedLocal();
             }
         } catch (e) {
             console.error("Failed to initialize Firebase outer block:", e); // Catch any errors from initializeApp itself
@@ -1913,13 +1728,13 @@
             logoutBtn.style.display = 'none';
             document.getElementById('clearDataBtn').style.display = 'inline-block'; // Allow clearing local data
 
-            // Load data from local storage for current show
-            watchedData = {}; // Clear global Firebase data
-            progressData = {};
-            lastWatchedData = {};
+            // Load data from local storage immediately
+            watchedData = getWatchedLocal();
+            progressData = getProgressLocal();
+            lastWatchedData = getLastWatchedLocal();
         } finally {
-             // Initial fetch of episode data is now handled by onAuthStateChanged
-             // or by the catch block if firebase setup fails entirely.
+             // Always fetch episode data, regardless of Firebase status, to populate the UI
+             fetchEpisodeData();
         }
     });
 
