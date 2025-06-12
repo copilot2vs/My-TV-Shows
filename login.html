@@ -6,6 +6,7 @@
     <title>Login / Sign Up</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     <style>
+        /* Existing CSS */
         :root {
             --bg-dark-charcoal: #1A202C;
             --bg-medium-charcoal: #2D3748;
@@ -18,13 +19,11 @@
             --grey-text: #A0AEC0;
             --shadow-dark: rgba(0, 0, 0, 0.6);
             --input-focus-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
-            --button-glow-light: 0 0 8px 4px rgba(0, 191, 255, 0.6);
-            --button-glow-hover: 0 0 12px 6px rgba(0, 191, 255, 0.9);
+            --button-glow-light: 0 0 8px rgba(66, 153, 225, 0.8);
         }
-
         body {
-            background: var(--bg-dark-charcoal);
             font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-dark-charcoal);
             color: var(--white-off);
             display: flex;
             justify-content: center;
@@ -33,251 +32,125 @@
             margin: 0;
             padding: 20px;
             box-sizing: border-box;
-            text-align: center;
+            line-height: 1.6;
         }
-
-        .container {
-            background: var(--bg-medium-charcoal);
-            padding: 40px 30px;
+        .login-container {
+            background-color: var(--bg-medium-charcoal);
+            padding: 40px;
             border-radius: 12px;
             box-shadow: 0 10px 20px var(--shadow-dark);
-            border: 1px solid var(--grey-border);
             width: 100%;
-            max-width: 450px;
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid var(--bg-light-charcoal);
         }
-
-        h1 {
-            font-family: 'Roboto', sans-serif;
+        h2 {
+            color: var(--blue-primary);
+            margin-bottom: 30px;
+            font-size: 2em;
             font-weight: 700;
-            font-size: 2.2em;
-            color: var(--white-off);
-            margin-bottom: 25px;
-            text-shadow: 2px 2px 6px var(--shadow-dark);
         }
-
-        .form-group {
-            margin-bottom: 20px;
+        .input-group {
+            margin-bottom: 25px;
             text-align: left;
         }
-
         label {
             display: block;
             margin-bottom: 8px;
-            color: var(--blue-primary);
-            font-weight: 600;
-            font-family: 'Open Sans', sans-serif;
+            color: var(--grey-text);
+            font-weight: 500;
             font-size: 0.95em;
         }
-
         input[type="email"],
         input[type="password"] {
-            width: calc(100% - 24px); /* Account for padding */
-            padding: 12px;
-            font-size: 1em;
+            width: 100%;
+            padding: 14px;
+            border: 1px solid var(--bg-light-charcoal);
             border-radius: 8px;
-            border: 2px solid var(--grey-border);
-            background: var(--bg-dark-charcoal);
+            background-color: var(--bg-dark-charcoal);
             color: var(--white-off);
-            outline: none;
-            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            font-size: 1.05em;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
-
         input[type="email"]:focus,
         input[type="password"]:focus {
-            border-color: var(--blue-active-border);
+            border-color: var(--blue-primary);
+            outline: none;
             box-shadow: var(--input-focus-shadow);
         }
-
-        button {
+        .auth-button {
             width: 100%;
-            padding: 15px;
-            font-size: 1.1em;
+            padding: 15px 20px;
+            background-color: var(--blue-primary);
+            color: var(--white-off);
             border: none;
-            border-radius: 25px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
             cursor: pointer;
-            font-weight: 700;
-            font-family: 'Open Sans', sans-serif;
-            background-color: var(--blue-primary);
-            color: #fff;
-            margin-top: 25px;
-            box-shadow: var(--button-glow-light);
-            transform: translateY(0);
-            transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            margin-top: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
         }
-
-        button:hover,
-        button:active {
-            box-shadow: var(--button-glow-hover);
+        .auth-button:hover {
+            background-color: #3182CE; /* A slightly darker blue */
             transform: translateY(-2px);
-            background-color: var(--blue-primary);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5), var(--button-glow-light);
         }
-
+        .auth-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
         .toggle-mode {
             margin-top: 25px;
             font-size: 0.95em;
             color: var(--grey-text);
         }
-
         .toggle-mode a {
             color: var(--blue-primary);
             text-decoration: none;
-            font-weight: 600;
-            transition: color 0.2s ease-in-out;
+            font-weight: 500;
+            transition: color 0.3s ease;
         }
-
         .toggle-mode a:hover {
-            color: var(--blue-active-border);
+            color: #63B3ED; /* Lighter blue on hover */
             text-decoration: underline;
         }
-
         .error-message {
             color: var(--red-primary);
-            margin-top: 15px;
             font-size: 0.9em;
-            display: none; /* Hidden by default */
-        }
-
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background: var(--bg-medium-charcoal);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px var(--shadow-dark);
-            text-align: center;
-            width: 90%;
-            max-width: 400px;
-            color: var(--white-off);
-            border: 1px solid var(--grey-border);
-        }
-
-        .modal-content h3 {
-            margin-top: 0;
-            color: var(--blue-primary);
-            font-size: 1.5em;
-            margin-bottom: 20px;
-        }
-
-        .modal-content p {
-            margin-bottom: 30px;
-            font-size: 1.1em;
-            line-height: 1.5;
-        }
-
-        .modal-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        .modal-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
-            font-family: 'Open Sans', sans-serif;
-            transition: background-color 0.2s ease-in-out;
-        }
-
-        .modal-btn.confirm-btn {
-            background-color: var(--red-primary);
-            color: #fff;
-        }
-
-        .modal-btn.confirm-btn:hover {
-            background-color: var(--red-primary);
-        }
-
-        .modal-btn.cancel-btn {
-            background-color: var(--grey-border);
-            color: var(--white-off);
-        }
-
-        .modal-btn.cancel-btn:hover {
-            background-color: var(--bg-light-charcoal);
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                padding: 30px 20px;
-            }
-            h1 {
-                font-size: 1.8em;
-            }
-            button {
-                padding: 12px;
-                font-size: 1em;
-            }
-            .modal-content {
-                padding: 20px;
-            }
-            .modal-content h3 {
-                font-size: 1.2em;
-            }
-            .modal-content p {
-                font-size: 0.9em;
-            }
-            .modal-buttons {
-                flex-direction: column;
-                gap: 10px;
-            }
-            .modal-btn {
-                width: 100%;
-            }
+            margin-top: 15px;
+            min-height: 20px; /* Reserve space to prevent layout shift */
         }
     </style>
 </head>
 <body>
-
-<div class="container">
-    <h1 id="formTitle">Login</h1>
-    <div class="form-group">
-        <label for="email">Email:</label>
-        <input type="email" id="email" placeholder="enter your email" required>
-    </div>
-    <div class="form-group">
-        <label for="password">Password:</label>
-        <input type="password" id="password" placeholder="enter your password" required>
-    </div>
-    <button id="authButton">Login</button>
-    <p class="toggle-mode">
-        <span id="toggleText">Don't have an account?</span>
-        <a href="#" id="toggleLink">Sign Up</a>
-    </p>
-    <p id="errorMessage" class="error-message"></p>
-</div>
-
-<div id="customModalOverlay" class="modal-overlay">
-    <div class="modal-content">
-        <h3 id="modalTitle"></h3>
-        <p id="modalMessage"></p>
-        <div class="modal-buttons">
-            <button id="modalConfirmBtn" class="modal-btn confirm-btn" style="display: none;">OK</button>
-            <button id="modalCancelBtn" class="modal-btn cancel-btn" style="display: none;">Cancel</button>
-            <button id="modalCloseBtn" class="modal-btn cancel-btn" style="display: none;">Close</button>
+    <div class="login-container">
+        <h2 id="formTitle">Login</h2>
+        <div class="input-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" placeholder="Enter your email" required>
         </div>
+        <div class="input-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="Enter your password" required>
+        </div>
+        <button id="authButton" class="auth-button">Login</button>
+        <p class="error-message" id="errorMessage"></p>
+        <p class="toggle-mode">
+            <span id="toggleText">Don't have an account?</span>
+            <a href="#" id="toggleLink">Sign Up</a>
+        </p>
     </div>
-</div>
 
-<script type="module">
-    // Firebase SDK imports
+    <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-    // --- Firebase Configuration ---
-    // IMPORTANT: This is your actual Firebase Config object from your Firebase project settings.
+    // Your Firebase configuration
+    // These values are specific to your Firebase project.
+    // You can find them in your Firebase console under Project settings -> General -> Your apps
     const firebaseConfig = {
         apiKey: "AIzaSyCljYuy1I3tlQWTevjS-_ZqJTU7FB7R90o",
         authDomain: "my-tv-shows-87d08.firebaseapp.com",
@@ -288,78 +161,26 @@
         measurementId: "G-CSEYYMHH5L"
     };
 
-    // Log the config to help user verify
-    console.log("Firebase config being used in login.html:", firebaseConfig);
-
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    // --- DOM Elements ---
-    const formTitle = document.getElementById('formTitle');
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     const authButton = document.getElementById('authButton');
+    const formTitle = document.getElementById('formTitle');
     const toggleText = document.getElementById('toggleText');
     const toggleLink = document.getElementById('toggleLink');
-    const errorMessage = document.getElementById('errorMessage');
+    const errorMessageElement = document.getElementById('errorMessage');
 
     let isLoginMode = true; // Default to login mode
 
-    // --- Custom Modal Function ---
-    function showCustomModal(message, type = 'alert', onConfirm = null) {
-        const modalOverlay = document.getElementById('customModalOverlay');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalMessage = document.getElementById('modalMessage');
-        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
-        const modalCancelBtn = document.getElementById('modalCancelBtn');
-        const modalCloseBtn = document.getElementById('modalCloseBtn');
-
-        modalConfirmBtn.style.display = 'none';
-        modalCancelBtn.style.display = 'none';
-        modalCloseBtn.style.display = 'none';
-        modalConfirmBtn.onclick = null;
-        modalCancelBtn.onclick = null;
-        modalCloseBtn.onclick = null;
-
-        modalMessage.textContent = message;
-
-        if (type === 'confirm') {
-            modalTitle.textContent = 'Confirm Action';
-            modalConfirmBtn.textContent = 'Confirm';
-            modalConfirmBtn.style.display = 'inline-block';
-            modalCancelBtn.textContent = 'Cancel';
-            modalCancelBtn.style.display = 'inline-block';
-
-            modalConfirmBtn.onclick = () => {
-                modalOverlay.style.display = 'none';
-                if (onConfirm) onConfirm(true);
-            };
-            modalCancelBtn.onclick = () => {
-                modalOverlay.style.display = 'none';
-                if (onConfirm) onConfirm(false);
-            };
-        } else {
-            modalTitle.textContent = 'Notification';
-            modalCloseBtn.textContent = 'Close';
-            modalCloseBtn.style.display = 'inline-block';
-            modalCloseBtn.onclick = () => {
-                modalOverlay.style.display = 'none';
-            };
-        }
-        modalOverlay.style.display = 'flex';
-    }
-
-
-    // --- Functions ---
     function displayError(message) {
-        errorMessage.textContent = message;
-        errorMessage.style.display = 'block';
+        errorMessageElement.textContent = message;
     }
 
     function clearError() {
-        errorMessage.textContent = '';
-        errorMessage.style.display = 'none';
+        errorMessageElement.textContent = '';
     }
 
     async function handleAuth() {
@@ -368,57 +189,53 @@
         const password = passwordInput.value;
 
         if (!email || !password) {
-            displayError('Please enter both email and password.');
+            displayError('Please enter email and password.');
             return;
         }
 
         try {
+            let userCredential;
             if (isLoginMode) {
-                // Login
-                await signInWithEmailAndPassword(auth, email, password);
-                showCustomModal('Logged in successfully!', 'alert');
-                setTimeout(() => {
-                    window.location.href = 'index.html'; // Redirect to main app
-                }, 1000);
-            } else {
-                // Sign Up
-                await createUserWithEmailAndPassword(auth, email, password);
-                showCustomModal('Account created successfully! You are now logged in.', 'alert');
-                setTimeout(() => {
-                    window.location.href = 'index.html'; // Redirect to main app
-                }, 1000);
+                userCredential = await signInWithEmailAndPassword(auth, email, password);
+                console.log('Logged in successfully! User UID:', userCredential.user.uid);
+                // Redirect to main application page after successful login
+                window.location.href = 'code.html'; // Changed from index.html to code.html for consistency with your file
+            } else { // Sign Up mode
+                userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                console.log('Signed up successfully! User UID:', userCredential.user.uid);
+                // Redirect to main application page after successful signup
+                window.location.href = 'code.html'; // Changed from index.html to code.html for consistency with your file
             }
         } catch (error) {
-            console.error("Authentication error:", error.code, error.message);
-            let userMessage = 'An unknown error occurred.';
-            switch (error.code) {
-                case 'auth/invalid-email':
-                    userMessage = 'Invalid email address.';
-                    break;
-                case 'auth/user-disabled':
-                    userMessage = 'This account has been disabled.';
-                    break;
-                case 'auth/user-not-found':
-                case 'auth/wrong-password': // For login
-                    userMessage = 'Invalid email or password.';
-                    break;
-                case 'auth/email-already-in-use':
-                    userMessage = 'This email is already in use. Try logging in.';
-                    break;
-                case 'auth/weak-password':
-                    userMessage = 'Password should be at least 6 characters.';
-                    break;
-                case 'auth/operation-not-allowed':
-                    userMessage = 'Email/Password authentication is not enabled. Please contact support.';
-                    break;
-                case 'auth/network-request-failed':
-                    userMessage = 'Network error. Please check your internet connection.';
-                    break;
-                case 'auth/api-key-not-valid':
-                    userMessage = 'Firebase API Key is not valid. Please check your Firebase configuration in the code.';
-                    break;
-                default:
-                    userMessage = `Authentication failed: ${error.message}`;
+            console.error("Auth error:", error);
+            let userMessage = "Authentication failed.";
+            if (error.code) {
+                switch (error.code) {
+                    case 'auth/invalid-email':
+                        userMessage = 'Invalid email address format.';
+                        break;
+                    case 'auth/user-disabled':
+                        userMessage = 'Your account has been disabled.';
+                        break;
+                    case 'auth/user-not-found':
+                    case 'auth/wrong-password':
+                        userMessage = 'Invalid email or password.';
+                        break;
+                    case 'auth/email-already-in-use':
+                        userMessage = 'This email is already in use. Please use a different email or log in.';
+                        break;
+                    case 'auth/weak-password':
+                        userMessage = 'Password should be at least 6 characters.';
+                        break;
+                    case 'auth/network-request-failed':
+                        userMessage = 'Network error. Please check your internet connection.';
+                        break;
+                    case 'auth/invalid-api-key':
+                        userMessage = 'Firebase API Key is not valid. Please check your Firebase configuration in the code.';
+                        break;
+                    default:
+                        userMessage = `Authentication failed: ${error.message}`;
+                }
             }
             displayError(userMessage);
         }
@@ -455,7 +272,6 @@
             toggleAuthMode(); // Call to set the UI correctly
         }
     });
-</script>
-
+    </script>
 </body>
 </html>
