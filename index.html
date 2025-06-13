@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My TV Shows</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://api.themoviedb.org">
+    <link rel="dns-prefetch" href="https://api.themoviedb.org">
+    <link rel="preconnect" href="https://vidfast.pro">
+    <link rel="dns-prefetch" href="https://vidfast.pro">
+    <link rel="preconnect" href="https://image.tmdb.org">
+    <link rel="dns-prefetch" href="https://image.tmdb.org">
+
+    <style>
+        /* Global box-sizing for consistent width calculation */
+        * {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark-charcoal: #1A202C;
+            --bg-medium-charcoal: #2D3748;
+            --bg-light-charcoal: #4A5568;
+            --blue-primary: #4299E1;
+            --blue-active-border: #3182CE;
+            --blue-highlight-bg: rgba(66, 153, 225, 0.2);
+            --blue-watched: #63B3ED;
+            --blue-to-cyan-glow: rgba(0, 191, 255, 1.0);
+            --red-primary: #E53E3E;
+            --white-off: #E2E8F0;
+            --white-icons: rgba(255, 255, 255, 0.8);
+            --grey-text: #A0AEC0;
+            --grey-buttons: #888;
+            --grey-border: #4A5568;
+            --shadow-light: rgba(0, 0, 0, 0.2);
+            --shadow-medium: rgba(0, 0, 0, 0.4);
+            --shadow-dark: rgba(0, 0, 0, 0.6);
+            --button-glow-light: 0 0 8px 4px rgba(0, 191, 255, 0.6);
+            --button-glow-hover: 0 0 12px 6px rgba(0, 191, 255, 0.9);
+
+            /* New glow colors for consistent application */
+            --constant-glow-color: rgba(66, 153, 225, 0.2); /* A softer blue for constant glow */
+            --strong-glow-color: rgba(66, 153, 225, 0.6); /* For hover/active states */
+        }
+        body {
+            background: var(--bg-dark-charcoal);
+            font-family: 'Roboto', sans-serif;
+            color: var(--white-off);
+            text-align: center;
+            padding: 20px;
+            line-height: 1.6;
+            margin: 0;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent; /* Attempt to remove blue tap highlight on mobile */
+            display: flex; /* Make body a flex container */
+            flex-direction: column; /* Stack children vertically */
+            align-items: stretch; /* Stretch children horizontally to fill width */
+            min-height: 100vh; /* Ensure body takes full viewport height */
+            /* box-sizing: border-box;  Removed from here as it's now global */
+            width: 100%; /* Ensure body spans full width */
+        }
+        .container {
+            max-width: 900px;
+            width: 100%; /* Take full available width, centered by body's align-items */
+            margin: 0 auto; /* Added for horizontal centering */
+            background: var(--bg-medium-charcoal);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px var(--shadow-dark);
+            border: 1px solid var(--grey-border);
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0; /* Prevent container from shrinking */
+            display: flex; /* Make container a flex container */
+            flex-direction: column; /* Stack children vertically */
+            align-items: stretch; /* Stretch children horizontally */
+        }
+        .header-icon {
+            position: absolute;
+            top: 20px;
+            background: none;
+            border: none;
+            color: var(--grey-text);
+            font-size: 22px;
+            cursor: pointer;
+            transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+            padding: 5px;
+            z-index: 10;
+        }
+        .header-icon:hover {
+            color: var(--blue-primary);
+            transform: scale(1.1);
+        }
+        #libraryBtn {
+            left: 20px;
+        }
+        #clearDataBtn {
+            right: 20px;
+        }
+        h1 {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 700;
+            font-size: 2.5em;
+            color: var(--white-off);
+            letter-spacing: 1.5px;
+            margin-bottom: 24px;
+            text-shadow: 2px 2px 6px var(--shadow-light);
+        }
+        /* Enhanced styling for dropdown labels */
+        label {
+            display: block;
+            margin: 0 0 8px; /* Adjusted margin for clearer separation from dropdown */
+            color: var(--blue-primary);
+            font-weight: 700; /* Made bolder */
+            font-family: 'Open Sans', sans-serif;
+            font-size: 1.2em; /* Significantly larger */
+            letter-spacing: 0.5px; /* Added subtle letter spacing */
+            text-shadow: 1px 1px 4px var(--shadow-dark); /* Stronger text shadow */
+        }
+        .selection-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+            gap: 20px;
+            width: 100%; /* Ensure it takes full width within container */
+        }
+        .selects-container-desktop {
+            display: flex;
+            gap: 20px;
+            align-items: flex-end;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+        }
+        .control-group label {
+            margin: 0;
+            display: inline-block;
+        }
+        .action-button {
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 700;
+            font-family: 'Open Sans', sans-serif;
+            background-color: var(--blue-primary);
+            color: #fff;
+            min-width: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+            height: fit-content;
+            /* Increased blue shadow brightness with more opacity */
+            box-shadow:
+            0 2px 8px rgba(0, 64, 255, 0.32),
+            0 8px 24px rgba(66, 153, 225, 0.38),
+            0 0 16px 4px rgba(66, 153, 225, 0.32);
+            margin-bottom: 0;
+            align-self: center;
+            transform: translateY(0);
+            transition: transform 0.2s, background-color 0.2s, color 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+        }
+        .action-button:hover, .action-button:active {
+            transform: translateY(-2px);
+            background-color: var(--blue-active-border);
+            color: #fff;
+            box-shadow:
+            0 6px 24px rgba(66, 153, 225, 0.48),
+            0 1.5px 6px rgba(66,153,225,0.36),
+            0 0 24px 8px rgba(66,153,225,0.44);
+        }
+        .action-button i, .action-button span {
+            pointer-events: none;
+        }
+        #videoPlayer {
+            margin-top: 35px;
+            border: none;
+            border-radius: 12px;
+            width: 100%;
+            min-height: 480px;
+            height: 60vh;
+            background: #000;
+            box-shadow: 0 5px 15px var(--shadow-dark); /* Added shadow */
+            margin-bottom: 25px;
+        }
+        .content-area {
+            width: 100%; /* Ensure content area takes full width */
+            display: flex;
+            flex-direction: column;
+            align-items: stretch; /* Changed to stretch to allow children to fill width */
+        }
+        .custom-dropdown {
+            position: relative;
+            width: 100%;
+            max-width: 200px;
+            margin-bottom: 0;
+        }
+        .dropdown-display {
+            padding: 14px 20px;
+            font-size: 1.15em;
+            border-radius: 10px;
+            border: 2px solid var(--grey-border);
+            background: linear-gradient(145deg, var(--bg-dark-charcoal), var(--bg-medium-charcoal));
+            color: var(--white-off);
+            outline: none;
+            font-weight: 500;
+            width: 100%;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            /* box-sizing: border-box; Removed from here as it's now global */
+            transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
+            height: 55px;
+            box-shadow: 0 0 16px 4px rgba(66,153,225,0.55), 0 0 2px 1px var(--blue-primary);
+        }
+        .dropdown-display:hover,
+        .dropdown-display.open,
+        .dropdown-display[aria-expanded="true"] {
+            border-color: var(--blue-active-border);
+            box-shadow: 0 0 24px 8px rgba(66,153,225,0.7), 0 0 4px 2px var(--blue-active-border);
+            background: linear-gradient(145deg, var(--bg-medium-charcoal), var(--bg-dark-charcoal));
+            color: #fff;
+        }
+        .dropdown-display .arrow-icon {
+            margin-left: 10px;
+            transition: transform 0.3s ease;
+        }
+        .dropdown-display.open .arrow-icon {
+            transform: rotate(180deg);
+        }
+        .dropdown-options {
+            position: absolute;
+            top: calc(100% + 5px);
+            left: 0;
+            width: 100%;
+            background: var(--bg-dark-charcoal);
+            border: 1px solid var(--blue-active-border);
+            border-radius: 8px;
+            box-shadow: 0 0 24px 8px rgba(66,153,225,0.5);
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+            list-style: none;
+            padding: 5px 0;
+            margin: 0;
+        }
+        .dropdown-options.open {
+            display: block;
+        }
+        .dropdown-options li {
+            padding: 12px 20px;
+            font-size: 1.05em;
+            cursor: pointer;
+            text-align: left;
+            transition: background-color 0.2s, color 0.2s;
+            outline: none;
+            border-radius: 6px;
+            margin: 0 5px;
+        }
+        .dropdown-options li:hover, .dropdown-options li.focused {
+            background-color: var(--blue-primary);
+            color: #fff;
+            transform: translateX(3px);
+            box-shadow: 0 0 12px 3px rgba(66,153,225,0.45);
+        }
+        #episodeListContainer {
+            margin-top: 30px;
+            padding: 20px;
+            background: var(--bg-dark-charcoal);
+            border-radius: 12px;
+            box-shadow: 0 5px 15px var(--shadow-dark); /* Added shadow */
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 18px 16px;
+            margin-bottom: 20px;
+            justify-items: center;
+            box-shadow: 0 0 10px 5px var(--blue-to-cyan-glow);
+            width: 100%; /* Ensure it takes full width within container */
+        }
+        .episode-item-rm {
+            display: flex;
+            flex-direction: column; /* Ensure content stacks vertically */
+            align-items: stretch;
+            background: var(--bg-medium-charcoal);
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            border: none !important;
+            box-shadow: 0 2px 8px var(--shadow-dark);
+            min-width: 160px;
+            max-width: 200px;
+            transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
+            position: relative;
+            outline: none !important;
+        }
+        .episode-item-rm:focus,
+        .episode-item-rm:focus-visible,
+        .episode-thumbnail-rm:focus,
+        .episode-thumbnail-rm img:focus {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+        .episode-item-rm.watched {
+            border: none !important;
+            background: #222e3a;
+        }
+        .episode-item-rm.active {
+            border: none !important;
+            background: transparent;
+            box-shadow: 0 0 10px 5px var(--blue-to-cyan-glow);
+            transform: translateY(0);
+            outline: none !important;
+        }
+        .episode-item-rm.active:hover {
+            /* Ensure active state maintains its glow even on hover */
+            box-shadow: 0 0 10px 5px var(--blue-to-cyan-glow);
+            transform: translateY(0);
+            background: transparent;
+            outline: none !important;
+        }
+        .episode-item-rm:hover:not(.active) {
+            border: none !important;
+            box-shadow: 0 2px 8px var(--shadow-medium);
+            transform: translateY(-2px);
+            outline: none !important;
+        }
+        .episode-thumbnail-rm {
+            width: 100%;
+            height: 100px;
+            background: #222;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9px;
+        }
+        .episode-thumbnail-rm img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            border-radius: 9px;
+        }
+        .episode-item-rm {
+            border-radius: 12px;
+        }
+        .episode-play-icon-rm {
+            display: none;
+        }
+        .episode-number-badge {
+            display: none !important;
+        }
+        .episode-overlay-info {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #fff;
+            z-index: 1;
+            border-radius: 9px;
+        }
+        .episode-overlay-info .overlay-episode-number {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .episode-overlay-info .overlay-episode-title {
+            font-size: 0.9em;
+            font-weight: 500;
+            white-space: normal;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0 10px;
+        }
+        .episode-info-below-thumbnail {
+            flex-grow: 1;
+            padding: 10px 12px 8px 12px;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            min-height: 70px;
+            position: relative;
+            z-index: 0;
+        }
+        .episode-info-below-thumbnail .episode-title-rm {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 700;
+            font-size: 1em;
+            margin-bottom: 4px;
+            color: var(--white-off);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+        .episode-info-below-thumbnail .episode-description-rm {
+            font-family: 'Open Sans', sans-serif;
+            font-size: 0.85em;
+            color: var(--grey-text);
+            line-height: 1.3;
+            max-height: 2.6em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 6px;
+            width: 100%;
+        }
+        /* Make overlay visible only when active, and info below thumbnail hidden (for mobile compactness) */
+        .episode-item-rm.active .episode-overlay-info {
+            display: flex;
+        }
+        /* .episode-item-rm.active .episode-info-below-thumbnail {
+            display: none; /* Removed for desktop to keep text always visible */
+        /* } */
+
+        /* Enhanced styling for the search container */
+        .search-container {
+            display: flex;
+            gap: 15px; /* Increased gap */
+            margin-bottom: 30px; /* Increased margin */
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            max-width: 650px; /* Slightly wider search bar */
+            background: var(--bg-medium-charcoal);
+            padding: 20px 25px; /* Increased padding */
+            border-radius: 30px; /* More rounded */
+            box-shadow: 0 0 10px 4px var(--constant-glow-color); /* Constant subtle blue glow */
+            border: 1px solid var(--blue-active-border); /* More visible border */
+            position: relative; /* For potential future additions */
+            overflow: hidden; /* To keep inner elements rounded */
+            /* box-sizing: border-box; Removed from here as it's now global */
+            /* Removed align-self as container is now flex and centers its items */
+        }
+        .search-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(145deg, rgba(66, 153, 225, 0.05), rgba(0, 191, 255, 0.02)); /* Subtle inner glow */
+            border-radius: inherit;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .search-container input[type="text"] {
+            flex-grow: 1;
+            padding: 16px 25px; /* Increased padding */
+            font-size: 1.2em; /* Larger font */
+            border-radius: 25px; /* Keeps rounded shape */
+            border: none; /* Border handled by container */
+            background: var(--bg-dark-charcoal);
+            color: var(--white-off);
+            outline: none;
+            font-weight: 500;
+            box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.6); /* Deeper inner shadow */
+            transition: all 0.3s ease;
+            z-index: 1; /* Ensure it's above the pseudo-element */
+            box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.8), 0 0 15px var(--blue-primary); /* Stronger glow on focus */
+        }
+        .search-container input[type="text"]:focus {
+            background-color: #262c38; /* Slightly lighter background on focus */
+            box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.8), 0 0 15px var(--blue-primary); /* Stronger glow on focus */
+        }
+        .search-container button {
+            padding: 15px 25px; /* Adjusted padding to match input height */
+            font-size: 1.3em; /* Larger icon/text */
+            border-radius: 25px; /* More rounded */
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+            background-color: var(--blue-primary);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); /* Stronger shadow for button */
+            transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px; /* Space between icon and text if text is added */
+            z-index: 1; /* Ensure it's above the pseudo-element */
+        }
+        .search-container button:hover {
+            transform: translateY(-3px); /* More pronounced lift */
+            background-color: var(--blue-active-border); /* Darker blue on hover */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5); /* Even stronger shadow on hover */
+        }
+        #searchResults {
+            margin-top: 25px; /* Adjusted margin */
+            padding: 20px; /* Increased padding */
+            background: var(--bg-dark-charcoal);
+            border-radius: 15px; /* More rounded */
+            box-shadow: 0 0 12px 6px var(--strong-glow-color); /* Stronger glow */
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+            text-align: left;
+            border: 1px solid var(--blue-primary); /* Added border */
+            width: 100%; /* Ensure it takes full width of container */
+        }
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px 15px; /* Increased padding */
+            border-bottom: 1px solid var(--grey-border);
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s;
+            max-width: 100%;
+            /* box-sizing: border-box; Removed from here as it's now global */
+            border-radius: 8px; /* Added subtle border radius */
+        }
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+        .search-result-item:hover {
+            background-color: var(--blue-highlight-bg); /* Use highlight background */
+            transform: translateX(5px); /* Subtle slide effect on hover */
+        }
+        .search-result-item h4 {
+            color: var(--white-off);
+            margin: 0;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+        .loading-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: var(--blue-primary);
+            font-size: 1.2em;
+            font-weight: 600;
+            gap: 10px;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid var(--blue-primary);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: var(--bg-medium-charcoal);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px var(--shadow-dark);
+            border: 1px solid var(--grey-border);
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.visible .modal-content {
+            transform: scale(1);
+        }
+        .modal-content h3 {
+            margin-top: 0;
+            color: var(--white-off);
+            font-size: 1.5em;
+        }
+        .modal-content p {
+            margin: 15px 0;
+            color: var(--grey-text);
+        }
+        .modal-buttons {
+            margin-top: 25px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .modal-btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+        .modal-btn.confirm-btn {
+            background-color: var(--blue-primary);
+            color: #fff;
+        }
+        .modal-btn.confirm-btn:hover {
+            background-color: var(--blue-active-border);
+            transform: translateY(-2px);
+        }
+        .modal-btn.cancel-btn {
+            background-color: var(--bg-light-charcoal);
+            color: var(--white-off);
+        }
+        .modal-btn.cancel-btn:hover {
+            background-color: #5A6578;
+            transform: translateY(-2px);
+        }
+        @media (max-width: 700px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+            .selection-row {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+            }
+            .selects-container-desktop {
+                flex-direction: column;
+                width: 100%;
+                gap: 15px;
+            }
+            .control-group {
+                width: 100%;
+                align-items: center;
+            }
+            .custom-dropdown {
+                max-width: 100%;
+            }
+            #episodeListContainer {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+                padding: 10px;
+            }
+            .episode-item-rm {
+                min-width: unset;
+                max-width: 100%;
+                width: 100%;
+                height: auto;
+                aspect-ratio: 16/9;
+            }
+            .episode-thumbnail-rm {
+                height: 100%;
+                border-radius: 9px;
+            }
+            .episode-thumbnail-rm img {
+                border-radius: 9px;
+            }
+            .episode-info-below-thumbnail {
+                display: none; /* Hidden on mobile for compactness */
+            }
+            .search-container {
+                flex-direction: row;
+                max-width: 100%;
+                align-items: center;
+                justify-content: center;
+                padding: 10px 15px; /* Adjusted padding for mobile */
+                gap: 10px; /* Adjusted gap for mobile */
+            }
+            .search-container input[type="text"] {
+                width: auto;
+                flex-grow: 1;
+                min-width: 0;
+                padding: 10px 15px; /* Adjusted padding for mobile */
+                font-size: 1em;
+            }
+            .search-container button {
+                width: 45px; /* Slightly larger touch target */
+                height: 45px;
+                padding: 0;
+                font-size: 1.3em; /* Larger icon */
+                flex-shrink: 0;
+            }
+            .search-container button span {
+                display: none;
+            }
+        }
+        @media (min-width: 701px) { /* Apply these styles for desktop (screens wider than 700px) */
+            .episode-item-rm {
+                height: auto;
+                /* aspect-ratio: 16/9; Removed fixed aspect ratio for flexible content */
+            }
+            .episode-thumbnail-rm {
+                height: 100px; /* Fixed height for consistency */
+                width: 100%;
+                border-radius: 9px;
+            }
+            .episode-thumbnail-rm img {
+                border-radius: 9px;
+            }
+            .episode-info-below-thumbnail {
+                display: flex; /* Always display on desktop */
+            }
+            /* If you want the overlay only on hover, and not when 'active', you can remove the .active rule for overlay */
+            .episode-item-rm:hover .episode-overlay-info {
+                display: flex; /* Show overlay on hover for all desktop items */
+            }
+            .episode-item-rm.active .episode-overlay-info {
+                display: none; /* Hide overlay when active, as info is below */
+            }
+            /* Ensure info below thumbnail is always visible, even when active */
+            .episode-item-rm.active .episode-info-below-thumbnail {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="Library.html" id="libraryBtn" class="header-icon" title="My Library"><i class="fas fa-layer-group"></i></a>
+    <button id="clearDataBtn" class="header-icon" title="Clear all data"><i class="fas fa-trash-alt"></i></button>
+    <h1 id="showTitle">My TV Shows</h1>
+
+    <div class="search-container">
+        <input type="text" id="showSearchInput" placeholder="Search for a TV Show...">
+        <button id="searchShowBtn"><i class="fas fa-search"></i></button>
+    </div>
+
+    <div id="searchResults"></div>
+
+    <div id="mainContentLoading" class="loading-indicator" style="display: none;">
+        <div class="loading-spinner"></div>
+        <span>Loading show data...</span>
+    </div>
+
+    <div id="contentArea" class="content-area">
+        <iframe id="videoPlayer" src="" frameborder="0" allowfullscreen></iframe>
+
+        <div class="selection-row">
+            <div class="selects-container-desktop">
+                <div class="control-group">
+                    <label for="seasonSelectDisplay">Season:</label>
+                    <div id="seasonSelect" class="custom-dropdown" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="seasonSelectDisplay">
+                        <div class="dropdown-display" id="seasonSelectDisplay" tabindex="0">Season 1 <i class="fas fa-chevron-down arrow-icon"></i></div>
+                        <ul class="dropdown-options" id="seasonOptions" role="listbox"></ul>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="episodeSelectDisplay">Episode:</label>
+                    <div id="episodeSelect" class="custom-dropdown" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="episodeSelectDisplay">
+                        <div class="dropdown-display" id="episodeSelectDisplay" tabindex="0">Episode 1 <i class="fas fa-chevron-down arrow-icon"></i></div>
+                        <ul class="dropdown-options" id="episodeOptions" role="listbox"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="episodeListContainer" style="margin-top: 30px;"></div>
+        <div class="episode-action-buttons" style="margin-top: 35px;">
+            <button id="loadMoreBtn" class="action-button">
+            <i class="fas fa-plus-circle"></i> <span>Load More</span>
+            </button>
+            <button id="showLessBtn" class="action-button">
+            <i class="fas fa-minus-circle"></i> <span>Show Less</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="customModalOverlay" class="modal-overlay">
+    <div class="modal-content">
+        <h3 id="modalTitle"></h3>
+        <p id="modalMessage"></p>
+        <div class="modal-buttons">
+            <button id="modalConfirmBtn" class="modal-btn confirm-btn" style="display: none;">OK</button>
+            <button id="modalCancelBtn" class="modal-btn cancel-btn" style="display: none;">Cancel</button>
+            <button id="modalCloseBtn" class="modal-btn cancel-btn" style="display: none;">Close</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    const WATCHED_KEY_PREFIX = 'tvShowWatched_';
+    const LAST_WATCHED_KEY_PREFIX = 'tvShowLastWatched_';
+    const MANUAL_PROGRESS_KEY_PREFIX = 'manualProgress_';
+    const LAST_SHOW_ID_KEY = 'lastActiveShowId';
+    const LAST_SHOW_NAME_KEY = 'lastShowName'; // Renamed to avoid confusion with current show's name
+
+    const PLACEHOLDER_IMAGE = 'https://placehold.co/160x90/1A1A1A/FFFFFF?text=NO+IMAGE';
+    const EPISODES_DISPLAY_WINDOW_SIZE = 10;
+    const TMDB_API_KEY = 'd62d816a3f48ed18c1dc5e157f4d73b2';
+    const TMDB_READ_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkNjJkODE2YTNmNDhlZDE4YzFkYzVlMTU3ZjRkNzNiMiIsIm5iZiI6MTc0OTYyMjI0MS4wMjQsInN1YiI6IjY4NDkxZGUxMDQ2NzYwZGI4YTlmNTg1ZCIsInNjb3BlcyI6WyJhcGpfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.UXLSaRBtR2aOvUObbrT3C4ctJcNG6MXTDjh1gu8y2Ks'
+    let currentTMDBShowId;
+    let currentTMDBShowName;
+
+    // Cache for episode metadata to avoid refetching
+    const tmdbDataCache = {};
+    let episodeMetadata = {};
+    let totalSeasons = 20;
+
+    let currentSeason = 1;
+    let currentEpisode = 1;
+    let isShowingAllEpisodes = false;
+    let isLoadingData = false;
+
+    const showTitleElement = document.getElementById('showTitle');
+    const showSearchInput = document.getElementById('showSearchInput');
+    const searchShowBtn = document.getElementById('searchShowBtn');
+    const searchResultsDiv = document.getElementById('searchResults');
+    const mainContentLoadingDiv = document.getElementById('mainContentLoading');
+    const videoPlayer = document.getElementById('videoPlayer');
+    const episodeListContainer = document.getElementById('episodeListContainer');
+
+    const seasonSelectDiv = document.getElementById('seasonSelect');
+    const seasonSelectDisplay = document.getElementById('seasonSelectDisplay');
+    const seasonOptionsUl = document.getElementById('seasonOptions');
+
+    const episodeSelectDiv = document.getElementById('episodeSelect');
+    const episodeSelectDisplay = document.getElementById('episodeSelectDisplay');
+    const episodeOptionsUl = document.getElementById('episodeOptions');
+
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    const showLessBtn = document.getElementById('showLessBtn');
+
+    // Intersection Observer for lazy loading episode images
+    let observer;
+
+    window.addEventListener('message', (event) => {
+        if (event.origin && !event.origin.includes('vidfast.pro')) return;
+        if (typeof event.data === 'object' && event.data && event.data.type === 'currentTime') {
+            const lastIframeTime = Math.floor(event.data.time || 0);
+            setLastWatchedCurrentShow(currentSeason, currentEpisode, lastIframeTime, false);
+            updateManualProgress(currentSeason, currentEpisode, lastIframeTime);
+        }
+    });
+
+    function requestIframeCurrentTime() {
+        if (videoPlayer && videoPlayer.contentWindow) {
+            videoPlayer.contentWindow.postMessage({ type: 'getCurrentTime' }, '*');
+        }
+    }
+
+    videoPlayer.addEventListener('blur', requestIframeCurrentTime);
+
+    document.addEventListener('click', (event) => {
+        if (!seasonSelectDiv.contains(event.target)) closeDropdown(seasonSelectDisplay, seasonOptionsUl);
+        if (!episodeSelectDiv.contains(event.target)) closeDropdown(episodeSelectDisplay, episodeOptionsUl);
+    });
+
+    function showCustomModal(message, type = 'alert', onConfirm = null) {
+        const modalOverlay = document.getElementById('customModalOverlay');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
+
+        modalConfirmBtn.style.display = 'none';
+        modalCancelBtn.style.display = 'none';
+        modalCloseBtn.style.display = 'none';
+
+        modalConfirmBtn.onclick = null;
+        modalCancelBtn.onclick = null;
+        modalCloseBtn.onclick = null;
+
+        modalMessage.textContent = message;
+
+        if (type === 'confirm') {
+            modalTitle.textContent = 'Confirm Action';
+            modalConfirmBtn.style.display = 'inline-block';
+            modalCancelBtn.style.display = 'inline-block';
+            modalConfirmBtn.onclick = () => {
+                modalOverlay.classList.remove('visible');
+                if (onConfirm) onConfirm(true);
+            };
+            modalCancelBtn.onclick = () => {
+                modalOverlay.classList.remove('visible');
+                if (onConfirm) onConfirm(false);
+            };
+        } else {
+            modalTitle.textContent = 'Notification';
+            modalCloseBtn.style.display = 'inline-block';
+            modalCloseBtn.onclick = () => modalOverlay.classList.remove('visible');
+        }
+        modalOverlay.classList.add('visible');
+    }
+
+    function getWatchedLocal() {
+        const stored = localStorage.getItem(WATCHED_KEY_PREFIX + currentTMDBShowId);
+        return stored ? JSON.parse(stored) : {};
+    }
+
+    function setWatchedLocal(watched) {
+        localStorage.setItem(WATCHED_KEY_PREFIX + currentTMDBShowId, JSON.stringify(watched));
+    }
+
+    function getLastWatchedLocal() {
+        const stored = localStorage.getItem(LAST_WATCHED_KEY_PREFIX + currentTMDBShowId);
+        return stored ? JSON.parse(stored) : null;
+    }
+
+    function setLastWatchedLocal(season, episode, seconds, finished) {
+        const data = {
+            season,
+            episode,
+            seconds,
+            finished,
+            showName: currentTMDBShowName,
+            lastWatchedTimestamp: Date.now()
+        };
+        localStorage.setItem(LAST_WATCHED_KEY_PREFIX + currentTMDBShowId, JSON.stringify(data));
+    }
+
+    function getManualProgress(season, episode) {
+        const key = `${MANUAL_PROGRESS_KEY_PREFIX}${currentTMDBShowId}_${season}_${episode}`;
+        const stored = localStorage.getItem(key);
+        return stored ? parseInt(stored) : 0;
+    }
+
+    function updateManualProgress(season, episode, seconds) {
+        const key = `${MANUAL_PROGRESS_KEY_PREFIX}${currentTMDBShowId}_${season}_${episode}`;
+        localStorage.setItem(key, seconds.toString());
+    }
+
+    function getWatchedCurrentShow() { return getWatchedLocal(); }
+    function setWatchedCurrentShow(watchedForThisShow) { setWatchedLocal(watchedForThisShow); }
+    function getLastWatchedCurrentShow() { return getLastWatchedLocal(); }
+    function setLastWatchedCurrentShow(season, episode, seconds, finished) {
+        setLastWatchedLocal(season, episode, seconds, finished);
+    }
+
+    async function fetchEpisodeData() {
+        if (isLoadingData) return; // Prevent multiple simultaneous fetches
+
+        isLoadingData = true;
+        mainContentLoadingDiv.style.display = 'flex';
+        document.getElementById('contentArea').style.display = 'none';
+
+        try {
+            // Update the show title immediately
+            showTitleElement.textContent = currentTMDBShowName;
+
+            // Check cache first
+            if (tmdbDataCache[currentTMDBShowId]) {
+                episodeMetadata = tmdbDataCache[currentTMDBShowId].episodeMetadata;
+                totalSeasons = tmdbDataCache[currentTMDBShowId].totalSeasons;
+                console.log(`Loaded data for show ID ${currentTMDBShowId} from cache.`);
+            } else {
+                // Validate TMDB_READ_TOKEN before making the fetch call
+                if (!TMDB_READ_TOKEN) {
+                    throw new Error("TMDB_READ_TOKEN is missing. Please provide a valid TMDB API key or read access token.");
+                }
+
+                const showDetailsResponse = await fetch(`https://api.themoviedb.org/3/tv/${currentTMDBShowId}`, {
+                    headers: { 'Authorization': `Bearer ${TMDB_READ_TOKEN}`, 'accept': 'application/json' }
+                });
+                if (!showDetailsResponse.ok) {
+                    const errorData = await showDetailsResponse.json().catch(() => ({}));
+                    throw new Error(`Failed to fetch show details: ${showDetailsResponse.status} - ${errorData.status_message || showDetailsResponse.statusText}.`);
+                }
+                const showDetails = await showDetailsResponse.json();
+                totalSeasons = showDetails.number_of_seasons;
+
+                // Fetch season data concurrently
+                const seasonPromises = Array.from({ length: totalSeasons }, (_, i) =>
+                    fetch(`https://api.themoviedb.org/3/tv/${currentTMDBShowId}/season/${i + 1}`, {
+                        headers: { 'Authorization': `Bearer ${TMDB_READ_TOKEN}`, 'accept': 'application/json' }
+                    }).then(res => {
+                        if (!res.ok) {
+                            console.warn(`Failed to fetch season ${i+1} for show ${currentTMDBShowId}: ${res.statusText}`);
+                            return null;
+                        }
+                        return res.json();
+                    })
+                );
+
+                const seasons = await Promise.all(seasonPromises);
+                episodeMetadata = {};
+                seasons.forEach(seasonObj => {
+                    const seasonNum = seasonObj?.season_number?.toString();
+                    if (seasonNum && seasonObj.episodes) {
+                        episodeMetadata[seasonNum] = Object.fromEntries(
+                            seasonObj.episodes.map(ep => [
+                                ep.episode_number.toString(),
+                                {
+                                    title: ep.name || `Episode ${ep.episode_number}`,
+                                    description: ep.overview || 'Description not available.',
+                                    image: ep.still_path ? `https://image.tmdb.org/t/p/w300${ep.still_path}` : PLACEHOLDER_IMAGE
+                                }
+                            ])
+                        );
+                    }
+                });
+                // Store in cache
+                tmdbDataCache[currentTMDBShowId] = { episodeMetadata, totalSeasons };
+                console.log(`Fetched and cached data for show ID ${currentTMDBShowId}.`);
+            }
+
+            const lastWatched = getLastWatchedCurrentShow();
+            if (lastWatched && lastWatched.season && lastWatched.episode && episodeMetadata[lastWatched.season] && episodeMetadata[lastWatched.season][lastWatched.episode]) {
+                currentSeason = lastWatched.season;
+                currentEpisode = lastWatched.episode;
+            } else {
+                // Default to S1E1 if no valid last watched or data missing
+                currentSeason = 1;
+                currentEpisode = 1;
+            }
+
+            isShowingAllEpisodes = false;
+            renderSeasonSelect();
+            renderEpisodeSelect();
+            renderEpisodeList(true);
+            updateVideoPlayer(true);
+        } catch (e) {
+            console.error('Error loading episode data:', e);
+            showCustomModal(`Failed to load show data: ${e.message}.`, 'alert');
+            // Reset to a default show if there's an error with the current one
+            currentTMDBShowId = 2288;
+            currentTMDBShowName = "Prison Break";
+            showTitleElement.textContent = currentTMDBShowName; // Ensure fallback title is set
+            episodeMetadata = {}; // Clear previous data
+            totalSeasons = 0; // Reset seasons
+            renderSeasonSelect();
+            renderEpisodeSelect();
+            episodeListContainer.innerHTML = '';
+            videoPlayer.src = 'about:blank'; // Clear video player
+        } finally {
+            isLoadingData = false;
+            mainContentLoadingDiv.style.display = 'none';
+            document.getElementById('contentArea').style.display = 'block';
+        }
+    }
+
+    function createDropdownOption(value, text, isWatched) {
+        const li = document.createElement('li');
+        li.dataset.value = value;
+        li.textContent = text;
+        li.setAttribute('role', 'option');
+        if (isWatched) li.classList.add('watched-option');
+        return li;
+    }
+
+    function openDropdown(displayElement, optionsListElement) {
+        displayElement.classList.add('open');
+        displayElement.setAttribute('aria-expanded', 'true');
+        optionsListElement.classList.add('open');
+    }
+
+    function closeDropdown(displayElement, optionsListElement) {
+        displayElement.classList.remove('open');
+        displayElement.setAttribute('aria-expanded', 'false');
+        optionsListElement.classList.remove('open');
+        optionsListElement.querySelectorAll('.focused').forEach(el => el.classList.remove('focused'));
+    }
+
+    function renderSeasonSelect() {
+        seasonOptionsUl.innerHTML = '';
+        for (let s = 1; s <= totalSeasons; s++) {
+            const li = createDropdownOption(s, `Season ${s}`, false);
+            seasonOptionsUl.appendChild(li);
+            li.addEventListener('click', () => {
+                selectSeason(parseInt(li.dataset.value));
+                closeDropdown(seasonSelectDisplay, seasonOptionsUl);
+            });
+        }
+        // Update the display text and ensure the arrow icon is there
+        seasonSelectDisplay.innerHTML = `Season ${currentSeason} <i class="fas fa-chevron-down arrow-icon"></i>`;
+    }
+
+    function renderEpisodeSelect() {
+        episodeOptionsUl.innerHTML = '';
+        const numEpisodes = episodeMetadata[currentSeason] ? Object.keys(episodeMetadata[currentSeason]).length : 0; // Default to 0 if season data is missing
+        const watched = getWatchedCurrentShow();
+        for (let i = 1; i <= numEpisodes; i++) {
+            const isWatched = watched[currentSeason] && watched[currentSeason].includes(i);
+            const li = createDropdownOption(i, `Episode ${i}`, isWatched);
+            episodeOptionsUl.appendChild(li);
+            li.addEventListener('click', () => {
+                selectEpisode(currentSeason, parseInt(li.dataset.value));
+                closeDropdown(episodeSelectDisplay, episodeOptionsUl);
+            });
+        }
+        // Update the display text and ensure the arrow icon is there
+        episodeSelectDisplay.innerHTML = `Episode ${currentEpisode} <i class="fas fa-chevron-down arrow-icon"></i>`;
+    }
+
+    seasonSelectDisplay.addEventListener('click', () => {
+        const isOpen = seasonOptionsUl.classList.contains('open');
+        if (isOpen) closeDropdown(seasonSelectDisplay, seasonOptionsUl);
+        else {
+            openDropdown(seasonSelectDisplay, seasonOptionsUl);
+            closeDropdown(episodeSelectDisplay, episodeOptionsUl);
+        }
+    });
+
+    episodeSelectDisplay.addEventListener('click', () => {
+        const isOpen = episodeOptionsUl.classList.contains('open');
+        if (isOpen) closeDropdown(episodeSelectDisplay, episodeOptionsUl);
+        else {
+            openDropdown(episodeSelectDisplay, episodeOptionsUl);
+            closeDropdown(seasonSelectDisplay, seasonOptionsUl);
+        }
+    });
+
+    function handleDropdownKeyboard(event, displayElement, optionsListElement, selectFn) {
+        if (!['Enter', ' ', 'Escape', 'ArrowDown', 'ArrowUp'].includes(event.key)) return;
+        event.preventDefault();
+
+        const isOpen = optionsListElement.classList.contains('open');
+        if (event.key === 'Escape') {
+            closeDropdown(displayElement, optionsListElement);
+            displayElement.focus();
+            return;
+        }
+        if (event.key === 'Enter' || event.key === ' ') {
+            if (isOpen) {
+                const currentFocused = optionsListElement.querySelector('.focused');
+                if (currentFocused) selectFn(parseInt(currentFocused.dataset.value)); // Ensure value is parsed as int
+                closeDropdown(displayElement, optionsListElement);
+            } else {
+                openDropdown(displayElement, optionsListElement);
+            }
+            return;
+        }
+
+        if (!isOpen) openDropdown(displayElement, optionsListElement);
+        const options = Array.from(optionsListElement.children);
+        const currentFocused = optionsListElement.querySelector('.focused');
+        let nextIndex = 0;
+        if (currentFocused) {
+            const currentIndex = options.indexOf(currentFocused);
+            currentFocused.classList.remove('focused');
+            if (event.key === 'ArrowDown') nextIndex = (currentIndex + 1) % options.length;
+            else nextIndex = (currentIndex - 1 + options.length) % options.length;
+        } else if (event.key === 'ArrowUp') {
+            nextIndex = options.length - 1;
+        }
+        options[nextIndex]?.classList.add('focused');
+        options[nextIndex]?.scrollIntoView({ block: 'nearest' });
+    }
+
+    seasonSelectDisplay.addEventListener('keydown', (event) => handleDropdownKeyboard(event, seasonSelectDisplay, seasonOptionsUl, (value) => selectSeason(parseInt(value))));
+    episodeSelectDisplay.addEventListener('keydown', (event) => handleDropdownKeyboard(event, episodeSelectDisplay, episodeOptionsUl, (value) => selectEpisode(currentSeason, parseInt(value))));
+
+    function selectSeason(seasonNum) {
+        if (currentSeason === seasonNum) return;
+        currentSeason = seasonNum;
+        currentEpisode = 1;
+        setLastWatchedCurrentShow(currentSeason, currentEpisode, 0, false);
+        renderEpisodeSelect();
+        isShowingAllEpisodes = false;
+        renderEpisodeList(true); // Full refresh for new season
+        updateVideoPlayer(false);
+        seasonSelectDisplay.innerHTML = `Season ${currentSeason} <i class="fas fa-chevron-down arrow-icon"></i>`; // Update display with arrow
+    }
+
+    function selectEpisode(season, episode) {
+        currentSeason = season;
+        currentEpisode = episode;
+        setLastWatchedCurrentShow(currentSeason, currentEpisode, 0, false);
+        episodeSelectDisplay.innerHTML = `Episode ${currentEpisode} <i class="fas fa-chevron-down arrow-icon"></i>`; // Update display with arrow
+        renderEpisodeList(false); // Only update active state
+        updateVideoPlayer(false);
+    }
+
+    function renderEpisodeList(fullRefresh = false) {
+        if (observer) {
+            observer.disconnect(); // Disconnect old observer to avoid observing removed elements
+        }
+        if (fullRefresh) {
+            episodeListContainer.innerHTML = '';
+        }
+
+        const episodesInSeason = episodeMetadata[currentSeason] || {};
+        const episodeNumbers = Object.keys(episodesInSeason).map(Number).sort((a, b) => a - b);
+        const targetDisplayCount = isShowingAllEpisodes ? episodeNumbers.length : EPISODES_DISPLAY_WINDOW_SIZE;
+
+        const fragment = document.createDocumentFragment();
+        const startIndex = fullRefresh ? 0 : episodeListContainer.children.length;
+
+        for (let i = startIndex; i < targetDisplayCount && i < episodeNumbers.length; i++) {
+            const episodeNum = episodeNumbers[i];
+            const episode = episodesInSeason[episodeNum.toString()];
+            if (!episode) continue;
+
+            const episodeItem = document.createElement('div');
+            episodeItem.className = 'episode-item-rm';
+            episodeItem.dataset.season = currentSeason;
+            episodeItem.dataset.episode = episodeNum;
+            // Use data-src for lazy loading images
+            episodeItem.innerHTML = `
+                <div class="episode-thumbnail-rm">
+                    <img data-src="${episode.image}" alt="Thumb" src="${PLACEHOLDER_IMAGE}" class="lazyload-img">
+                    <div class="episode-overlay-info">
+                        <div class="overlay-episode-number">Episode ${episodeNum}</div>
+                        <div class="overlay-episode-title">${episode.title}</div>
+                    </div>
+                </div>
+                <div class="episode-info-below-thumbnail">
+                    <div class="episode-title-rm">${episode.title}</div>
+                    <div class="episode-description-rm">${episode.description}</div>
+                </div>
+            `;
+            episodeItem.addEventListener('click', () => {
+                selectEpisode(parseInt(episodeItem.dataset.season), parseInt(episodeItem.dataset.episode));
+            });
+            fragment.appendChild(episodeItem);
+        }
+        if (fragment.children.length > 0) {
+            episodeListContainer.appendChild(fragment);
+        }
+
+        const watched = getWatchedCurrentShow();
+        episodeListContainer.querySelectorAll('.episode-item-rm').forEach(item => {
+            const isWatched = watched[item.dataset.season]?.includes(parseInt(item.dataset.episode));
+            item.classList.toggle('watched', isWatched);
+            const isActive = parseInt(item.dataset.season) === currentSeason && parseInt(item.dataset.episode) === currentEpisode;
+            item.classList.toggle('active', isActive);
+        });
+
+        const canLoadMore = episodeNumbers.length > EPISODES_DISPLAY_WINDOW_SIZE;
+        loadMoreBtn.style.display = canLoadMore && !isShowingAllEpisodes ? 'inline-flex' : 'none';
+        showLessBtn.style.display = canLoadMore && isShowingAllEpisodes ? 'inline-flex' : 'none';
+
+        // Initialize Intersection Observer for lazy loading images
+        const lazyLoadImages = document.querySelectorAll('.lazyload-img');
+        if ('IntersectionObserver' in window) {
+            observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.onload = () => img.classList.remove('lazyload-img'); // Remove class after loading
+                        observer.unobserve(img);
+                    }
+                });
+            }, {
+                rootMargin: '100px' // Load images when they are 100px from viewport
+            });
+
+            lazyLoadImages.forEach(img => {
+                observer.observe(img);
+            });
+        } else {
+            // Fallback for browsers that don't support Intersection Observer
+            lazyLoadImages.forEach(img => {
+                img.src = img.dataset.src;
+            });
+        }
+    }
+
+    function updateVideoPlayer(initialLoad = false) {
+        let secondsToStart = 0;
+        if (initialLoad) {
+            const lastWatched = getLastWatchedCurrentShow();
+            if (lastWatched && lastWatched.season === currentSeason && lastWatched.episode === currentEpisode && lastWatched.seconds > 0 && !lastWatched.finished) {
+                secondsToStart = lastWatched.seconds;
+            } else if (lastWatched && lastWatched.season === currentSeason && lastWatched.episode === currentEpisode && lastWatched.seconds === 0) {
+                // If vidfast's last watched time is 0, attempt to use manual progress
+                const manualProgress = getManualProgress(currentSeason, currentEpisode);
+                if (manualProgress > 0) {
+                    secondsToStart = manualProgress;
+                }
+            }
+        }
+        const url = `https://vidfast.pro/tv/${currentTMDBShowId}/${currentSeason}/${currentEpisode}?autoPlay=true&nextButton=true&autoNext=true&theme=#1e90ff${secondsToStart > 0 ? '#' + secondsToStart : ''}`;
+
+        // Only update src if it's different to prevent unnecessary iframe reloads
+        if (videoPlayer.src !== url) {
+            videoPlayer.src = url;
+        }
+
+        if (window.markWatchedTimeout) clearTimeout(window.markWatchedTimeout);
+        window.markWatchedTimeout = setTimeout(() => {
+            let watched = getWatchedCurrentShow();
+            if (!watched[currentSeason]) watched[currentSeason] = [];
+            if (!watched[currentSeason].includes(currentEpisode)) {
+                watched[currentSeason].push(currentEpisode);
+                setWatchedCurrentShow(watched);
+                renderEpisodeSelect();
+                // Rerender specific episode item to update its 'watched' class
+                const currentEpisodeItem = episodeListContainer.querySelector(`[data-season="${currentSeason}"][data-episode="${currentEpisode}"]`);
+                if (currentEpisodeItem) {
+                    currentEpisodeItem.classList.add('watched');
+                }
+            }
+        }, 10000);
+    }
+
+    document.getElementById('clearDataBtn').addEventListener('click', () => {
+        showCustomModal('Are you sure you want to clear all data? This cannot be undone.', 'confirm', (response) => {
+            if (response) {
+                Object.keys(localStorage).forEach(key => {
+                    if (key.startsWith('tvShow') || key.startsWith('lastActive') || key.startsWith(MANUAL_PROGRESS_KEY_PREFIX)) {
+                        localStorage.removeItem(key);
+                    }
+                });
+                videoPlayer.src = 'about:blank';
+                // Clear the in-memory cache as well
+                for (const key in tmdbDataCache) {
+                    delete tmdbDataCache[key];
+                }
+                currentTMDBShowId = 1433;
+                currentTMDBShowName = "American Dad!";
+                fetchEpisodeData();
+                showCustomModal('All local data has been cleared.', 'alert');
+            }
+        });
+    });
+
+    loadMoreBtn.addEventListener('click', () => {
+        isShowingAllEpisodes = true;
+        renderEpisodeList(true); // Full refresh to display all
+    });
+    showLessBtn.addEventListener('click', () => {
+        isShowingAllEpisodes = false;
+        renderEpisodeList(true); // Full refresh to display limited
+    });
+
+    async function searchShows(query) {
+        searchResultsDiv.innerHTML = `<div class="loading-indicator"><div class="loading-spinner"></div><span>Searching...</span></div>`;
+        searchResultsDiv.style.display = 'block';
+        if (!TMDB_READ_TOKEN) {
+            searchResultsDiv.innerHTML = `<p style="color: var(--red-primary);">TMDB API Token is missing. Please provide a valid TMDB API key or read access token.</p>`;
+            return;
+        }
+        try {
+            const response = await fetch(`https://api.themoviedb.org/3/search/tv?query=${encodeURIComponent(query)}`, {
+                headers: { 'Authorization': `Bearer ${TMDB_READ_TOKEN}`, 'accept': 'application/json' }
+            });
+            if (!response.ok) throw new Error(`Search failed: ${response.statusText}`);
+            const data = await response.json();
+            displaySearchResults(data.results);
+        } catch (error) {
+            console.error('Error searching shows:', error);
+            searchResultsDiv.innerHTML = `<p style="color: var(--red-primary);">Error: ${error.message}.</p>`;
+        }
+    }
+
+    function displaySearchResults(results) {
+        searchResultsDiv.innerHTML = '';
+        if (results.length === 0) {
+            searchResultsDiv.innerHTML = '<p style="color: var(--grey-text);">No results found.</p>';
+            return;
+        }
+        results.forEach(show => {
+            const resultItem = document.createElement('div');
+            resultItem.className = 'search-result-item';
+            resultItem.innerHTML = `<h4>${show.name}</h4>`;
+            resultItem.addEventListener('click', () => {
+                currentTMDBShowId = show.id;
+                currentTMDBShowName = show.name;
+                localStorage.setItem(LAST_SHOW_ID_KEY, currentTMDBShowId);
+                localStorage.setItem(LAST_SHOW_NAME_KEY, currentTMDBShowName);
+                searchResultsDiv.style.display = 'none';
+                showSearchInput.value = '';
+                fetchEpisodeData(); // This will now leverage the cache or refetch if necessary
+            });
+            searchResultsDiv.appendChild(resultItem);
+        });
+    }
+
+    searchShowBtn.addEventListener('click', () => searchShows(showSearchInput.value.trim()));
+    showSearchInput.addEventListener('keypress', (event) => {
+        if (event.key === 'Enter') searchShowBtn.click();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const storedShowId = localStorage.getItem(LAST_SHOW_ID_KEY);
+        const storedShowName = localStorage.getItem(LAST_SHOW_NAME_KEY);
+        if (storedShowId && storedShowName) {
+            currentTMDBShowId = parseInt(storedShowId);
+            currentTMDBShowName = storedShowName;
+        } else {
+            currentTMDBShowId = 1433; // Default to American Dad!
+            currentTMDBShowName = "American Dad!";
+        }
+        fetchEpisodeData();
+    });
+</script>
+
+</body>
+</html>
