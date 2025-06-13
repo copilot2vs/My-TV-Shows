@@ -273,6 +273,7 @@
         const TMDB_READ_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkNjJkODE2YTNmNDhlZDE4YzFkYzVlMTU3ZjRkNzNiMiIsIm5iZiI6MTc0OTYyMjI0MS4wMjQsInN1YiI6IjY4NDkxZGUxMDQ2NzYwZGI4YTlmNTg1ZCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.UXLSaRBtR2aOvUObbrT3C4ctJcNG6MXTDjh1gu8y2Ks';
         const WATCHED_KEY_PREFIX = 'tvShowWatched_';
         const LAST_WATCHED_KEY_PREFIX = 'tvShowLastWatched_';
+        const MANUAL_PROGRESS_KEY_PREFIX = 'manualProgress_';
         const LAST_SHOW_ID_KEY = 'lastActiveShowId';
         const LAST_SHOW_NAME_KEY = 'lastActiveShowName';
 
@@ -294,12 +295,20 @@
 
         function deleteShow() {
             if (!showToDelete.id) return;
+
+            // Remove relevant localStorage keys for the show
             localStorage.removeItem(LAST_WATCHED_KEY_PREFIX + showToDelete.id);
             localStorage.removeItem(WATCHED_KEY_PREFIX + showToDelete.id);
+            // Remove all manual progress entries for this show
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith(`${MANUAL_PROGRESS_KEY_PREFIX}${showToDelete.id}_`)) {
+                    localStorage.removeItem(key);
+                }
+            });
             
             showToDelete.element.remove();
             
-            if (libraryGrid.childElementCount === 0) {
+            if (libraryGrid.childElementCount === 0 || libraryGrid.children.length === 1 && libraryGrid.children[0].id === 'libraryLoading') {
                  renderEmptyMessage();
             }
 
