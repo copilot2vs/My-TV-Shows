@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My TV Shows</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Open+Sans:wght+400;600&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-dark-charcoal: #1A202C;
@@ -444,14 +444,6 @@
         .search-result-item:hover {
             background-color: rgba(66, 153, 225, 0.1);
         }
-        .search-result-info h4 {
-            margin: 0;
-            color: var(--white-off);
-            font-size: 1em;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
         .loading-indicator {
             display: flex;
             align-items: center;
@@ -683,13 +675,11 @@
     </div>
 </div>
 <style>
-/* Remove unwanted blue outline from episode thumbnails */
 .episode-thumbnail-rm:focus,
 .episode-thumbnail-rm img:focus {
     outline: none !important;
     box-shadow: none !important;
 }
-/* Remove blue outline from episode-item-rm if not active */
 .episode-item-rm:focus {
     outline: none !important;
     box-shadow: none !important;
@@ -711,6 +701,7 @@
 <script type="module">
     const WATCHED_KEY_PREFIX = 'tvShowWatched_';
     const LAST_WATCHED_KEY_PREFIX = 'tvShowLastWatched_';
+    const MANUAL_PROGRESS_KEY_PREFIX = 'manualProgress_';
     const LAST_SHOW_ID_KEY = 'lastActiveShowId';
     const LAST_SHOW_NAME_KEY = 'lastActiveShowName';
 
@@ -754,6 +745,7 @@
         if (typeof event.data === 'object' && event.data && event.data.type === 'currentTime') {
             const lastIframeTime = Math.floor(event.data.time || 0);
             setLastWatchedCurrentShow(currentSeason, currentEpisode, lastIframeTime, false);
+            updateManualProgress(currentSeason, currentEpisode, lastIframeTime);
         }
     });
 
@@ -832,6 +824,17 @@
             lastWatchedTimestamp: Date.now()
         };
         localStorage.setItem(LAST_WATCHED_KEY_PREFIX + currentTMDBShowId, JSON.stringify(data));
+    }
+
+    function getManualProgress(season, episode) {
+        const key = `${MANUAL_PROGRESS_KEY_PREFIX}${currentTMDBShowId}_${season}_${episode}`;
+        const stored = localStorage.getItem(key);
+        return stored ? parseInt(stored) : 0;
+    }
+
+    function updateManualProgress(season, episode, seconds) {
+        const key = `${MANUAL_PROGRESS_KEY_PREFIX}${currentTMDBShowId}_${season}_${episode}`;
+        localStorage.setItem(key, seconds.toString());
     }
 
     function getWatchedCurrentShow() { return getWatchedLocal(); }
@@ -1096,6 +1099,12 @@
             const lastWatched = getLastWatchedCurrentShow();
             if (lastWatched && lastWatched.season === currentSeason && lastWatched.episode === currentEpisode && lastWatched.seconds > 0 && !lastWatched.finished) {
                 secondsToStart = lastWatched.seconds;
+            } else if (lastWatched && lastWatched.season === currentSeason && lastWatched.episode === currentEpisode && lastWatched.seconds === 0) {
+                // If vidfast's last watched time is 0, attempt to use manual progress
+                const manualProgress = getManualProgress(currentSeason, currentEpisode);
+                if (manualProgress > 0) {
+                    secondsToStart = manualProgress;
+                }
             }
         }
         const url = `https://vidfast.pro/tv/${currentTMDBShowId}/${currentSeason}/${currentEpisode}?autoPlay=true&nextButton=true&autoNext=true&theme=#1e90ff${secondsToStart > 0 ? '#' + secondsToStart : ''}`;
@@ -1118,7 +1127,7 @@
         showCustomModal('Are you sure you want to clear all data? This cannot be undone.', 'confirm', (response) => {
             if (response) {
                 Object.keys(localStorage).forEach(key => {
-                    if (key.startsWith('tvShow') || key.startsWith('lastActive')) {
+                    if (key.startsWith('tvShow') || key.startsWith('lastActive') || key.startsWith(MANUAL_PROGRESS_KEY_PREFIX)) {
                         localStorage.removeItem(key);
                     }
                 });
@@ -1137,7 +1146,7 @@
     });
     showLessBtn.addEventListener('click', () => {
         isShowingAllEpisodes = false;
-        renderEpisodeList(true); // Re-render from scratch to show only the initial amount
+        renderEpisodeList(true);
     });
 
     async function searchShows(query) {
@@ -1195,7 +1204,6 @@
             currentTMDBShowId = parseInt(storedShowId);
             currentTMDBShowName = storedShowName;
         } else {
-            // Set default to Prison Break if no show is stored
             currentTMDBShowId = 2288;
             currentTMDBShowName = "Prison Break";
         }
