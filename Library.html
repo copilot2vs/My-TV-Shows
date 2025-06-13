@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Library</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark-charcoal: #1A202C;
+            --bg-medium-charcoal: #2D3748;
+            --bg-light-charcoal: #4A5568;
+            --blue-primary: #4299E1;
+            --blue-active-border: #3182CE;
+            --red-primary: #E53E3E;
+            --white-off: #E2E8F0;
+            --grey-text: #A0AEC0;
+            --grey-border: #4A5568;
+            --shadow-light: rgba(0, 0, 0, 0.2);
+            --shadow-medium: rgba(0, 0, 0, 0.4);
+            --shadow-dark: rgba(0, 0, 0, 0.6);
+            --button-glow-light: 0 0 8px 4px rgba(0, 191, 255, 0.6);
+            --button-glow-hover: 0 0 12px 6px rgba(0, 191, 255, 0.9);
+        }
+        body {
+            background: var(--bg-dark-charcoal);
+            font-family: 'Roboto', sans-serif;
+            color: var(--white-off);
+            margin: 0;
+            padding: 20px;
+        }
+        .library-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .library-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid var(--grey-border);
+            padding-bottom: 20px;
+        }
+        .library-header h1 {
+            font-size: 2.8em;
+            color: var(--white-off);
+            margin: 0;
+            text-shadow: 2px 2px 6px var(--shadow-light);
+        }
+        .back-button {
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 700;
+            font-family: 'Open Sans', sans-serif;
+            background-color: var(--blue-primary);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+            box-shadow: var(--button-glow-light);
+            transform: translateY(0);
+            transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
+            text-decoration: none;
+        }
+        .back-button:hover {
+            box-shadow: var(--button-glow-hover);
+            transform: translateY(-2px);
+            background-color: var(--blue-active-border);
+        }
+        #libraryGrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        .show-card {
+            background: var(--bg-medium-charcoal);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 15px var(--shadow-dark);
+            border: 1px solid var(--grey-border);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .show-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px var(--shadow-dark), 0 0 10px var(--blue-primary);
+        }
+        .show-card-link {
+            text-decoration: none;
+            color: var(--white-off);
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+        .show-banner {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background-color: #000;
+        }
+        .show-banner img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .show-info {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+        .show-title {
+            font-size: 1.6em;
+            font-weight: 700;
+            margin: 0 0 10px 0;
+        }
+        .last-watched-info {
+            font-size: 1em;
+            color: var(--grey-text);
+            margin-top: auto;
+        }
+        .last-watched-info strong {
+            color: var(--blue-primary);
+        }
+        .delete-show-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.6);
+            color: var(--white-off);
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s, transform 0.2s;
+            z-index: 5;
+        }
+        .delete-show-btn:hover {
+            background: var(--red-primary);
+            transform: scale(1.1);
+        }
+        .loading-indicator, .empty-library {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 50px;
+            color: var(--grey-text);
+            font-size: 1.2em;
+            text-align: center;
+            width: 100%;
+            grid-column: 1 / -1;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid var(--blue-primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: var(--bg-medium-charcoal);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px var(--shadow-dark);
+            border: 1px solid var(--grey-border);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.visible .modal-content {
+            transform: scale(1);
+        }
+        .modal-buttons {
+            margin-top: 25px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .modal-btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+        .modal-btn.confirm-btn {
+            background-color: var(--red-primary);
+            color: #fff;
+        }
+        .modal-btn.cancel-btn {
+            background-color: var(--bg-light-charcoal);
+            color: var(--white-off);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .library-header h1 { font-size: 2em; }
+            #libraryGrid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="library-container">
+    <div class="library-header">
+        <h1>My Library</h1>
+        <a href="index.html" class="back-button"><i class="fas fa-arrow-left"></i> Back to Player</a>
+    </div>
+    <div id="libraryGrid">
+        <div id="libraryLoading" class="loading-indicator">
+            <div class="loading-spinner"></div>
+            <span>Loading your library...</span>
+        </div>
+    </div>
+</div>
+
+<div id="deleteModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>Delete Show</h3>
+        <p>Are you sure you want to delete this show and all its progress from your library? This cannot be undone.</p>
+        <div class="modal-buttons">
+            <button id="modalConfirmDelete" class="modal-btn confirm-btn">Delete</button>
+            <button id="modalCancelDelete" class="modal-btn cancel-btn">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    document.addEventListener('DOMContentLoaded', async () => {
+        const TMDB_READ_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkNjJkODE2YTNmNDhlZDE4YzFkYzVlMTU3ZjRkNzNiMiIsIm5iZiI6MTc0OTYyMjI0MS4wMjQsInN1YiI6IjY4NDkxZGUxMDQ2NzYwZGI4YTlmNTg1ZCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.UXLSaRBtR2aOvUObbrT3C4ctJcNG6MXTDjh1gu8y2Ks';
+        const WATCHED_KEY_PREFIX = 'tvShowWatched_';
+        const LAST_WATCHED_KEY_PREFIX = 'tvShowLastWatched_';
+        const LAST_SHOW_ID_KEY = 'lastActiveShowId';
+        const LAST_SHOW_NAME_KEY = 'lastActiveShowName';
+
+        const libraryGrid = document.getElementById('libraryGrid');
+        const libraryLoading = document.getElementById('libraryLoading');
+        const deleteModal = document.getElementById('deleteModal');
+        const confirmDeleteBtn = document.getElementById('modalConfirmDelete');
+        const cancelDeleteBtn = document.getElementById('modalCancelDelete');
+        let showToDelete = { id: null, element: null };
+
+        function showDeleteModal(showId, cardElement) {
+            showToDelete = { id: showId, element: cardElement };
+            deleteModal.classList.add('visible');
+        }
+
+        function hideDeleteModal() {
+            deleteModal.classList.remove('visible');
+        }
+
+        function deleteShow() {
+            if (!showToDelete.id) return;
+            localStorage.removeItem(LAST_WATCHED_KEY_PREFIX + showToDelete.id);
+            localStorage.removeItem(WATCHED_KEY_PREFIX + showToDelete.id);
+            
+            showToDelete.element.remove();
+            
+            if (libraryGrid.childElementCount === 0) {
+                 renderEmptyMessage();
+            }
+
+            hideDeleteModal();
+        }
+        
+        cancelDeleteBtn.addEventListener('click', hideDeleteModal);
+        confirmDeleteBtn.addEventListener('click', deleteShow);
+
+        const allShows = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith(LAST_WATCHED_KEY_PREFIX)) {
+                try {
+                    const showId = key.replace(LAST_WATCHED_KEY_PREFIX, '');
+                    const data = JSON.parse(localStorage.getItem(key));
+                    if (data && data.lastWatchedTimestamp) {
+                        allShows.push({ id: showId, ...data });
+                    }
+                } catch (e) {
+                    console.error(`Could not parse data for key ${key}:`, e);
+                }
+            }
+        }
+
+        function renderEmptyMessage() {
+            libraryGrid.innerHTML = `
+                <div class="empty-library">
+                    <i class="fas fa-ghost" style="font-size: 3em; margin-bottom: 20px;"></i>
+                    <h2>Your library is empty.</h2>
+                    <p>Start watching a show on the main page to add it here.</p>
+                </div>`;
+        }
+
+        if (allShows.length === 0) {
+            libraryLoading.style.display = 'none';
+            renderEmptyMessage();
+            return;
+        }
+
+        allShows.sort((a, b) => b.lastWatchedTimestamp - a.lastWatchedTimestamp);
+
+        const fetchShowDetailsPromises = allShows.map(async (show) => {
+            try {
+                const response = await fetch(`https://api.themoviedb.org/3/tv/${show.id}`, {
+                    headers: { 'Authorization': `Bearer ${TMDB_READ_TOKEN}`, 'accept': 'application/json' }
+                });
+                if (!response.ok) throw new Error('Failed to fetch details');
+                const details = await response.json();
+                show.backdrop_path = details.backdrop_path ? `https://image.tmdb.org/t/p/w780${details.backdrop_path}` : 'https://placehold.co/780x439/1A202C/FFFFFF?text=No+Banner';
+                return show;
+            } catch (error) {
+                console.error(`Failed to fetch details for show ID ${show.id}:`, error);
+                show.backdrop_path = 'https://placehold.co/780x439/1A202C/FFFFFF?text=Error';
+                return show;
+            }
+        });
+
+        const showsWithDetails = await Promise.all(fetchShowDetailsPromises);
+
+        libraryLoading.style.display = 'none';
+        const fragment = document.createDocumentFragment();
+
+        showsWithDetails.forEach(show => {
+            const card = document.createElement('div');
+            card.className = 'show-card';
+            
+            card.innerHTML = `
+                <button class="delete-show-btn" title="Delete Show"><i class="fas fa-trash"></i></button>
+                <a href="index.html" class="show-card-link" data-show-id="${show.id}" data-show-name="${show.showName}">
+                    <div class="show-banner">
+                       <img src="${show.backdrop_path}" alt="${show.showName} banner">
+                    </div>
+                    <div class="show-info">
+                        <h2 class="show-title">${show.showName}</h2>
+                        <p class="last-watched-info">
+                            Last watched: <strong>Season ${show.season}, Episode ${show.episode}</strong>
+                        </p>
+                    </div>
+                </a>
+            `;
+            
+            card.querySelector('.show-card-link').addEventListener('click', (e) => {
+                e.preventDefault();
+                const link = e.currentTarget;
+                localStorage.setItem(LAST_SHOW_ID_KEY, link.dataset.showId);
+                localStorage.setItem(LAST_SHOW_NAME_KEY, link.dataset.showName);
+                window.location.href = 'index.html'; 
+            });
+
+            card.querySelector('.delete-show-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                showDeleteModal(show.id, card);
+            });
+            
+            fragment.appendChild(card);
+        });
+
+        libraryGrid.appendChild(fragment);
+    });
+</script>
+
+</body>
+</html>
