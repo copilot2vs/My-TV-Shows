@@ -190,7 +190,8 @@
             min-height: 480px;
             height: 60vh;
             background: #000;
-            box-shadow: 0 5px 15px var(--shadow-dark); /* Added shadow */
+            /* Added blue glow */
+            box-shadow: 0 0 10px 5px var(--blue-to-cyan-glow);
             margin-bottom: 25px;
         }
         .content-area {
@@ -740,6 +741,10 @@
             .episode-item-rm.active .episode-info-below-thumbnail {
                 display: flex;
             }
+            .search-container {
+                margin-left: auto;
+                margin-right: auto;
+            }
         }
     </style>
 </head>
@@ -784,8 +789,8 @@
             </div>
         </div>
 
-        <div id="episodeListContainer" style="margin-top: 30px;"></div>
-        <div class="episode-action-buttons" style="margin-top: 35px;">
+        <div id="episodeListContainer" style="margin-top: 40px;"></div>
+        <div class="episode-action-buttons" style="margin-top: 25px;">
             <button id="loadMoreBtn" class="action-button">
             <i class="fas fa-plus-circle"></i> <span>Load More</span>
             </button>
@@ -1401,8 +1406,8 @@
             currentTMDBShowId = parseInt(storedShowId);
             currentTMDBShowName = storedShowName;
         } else {
-            currentTMDBShowId = 1433; // Default to American Dad!
-            currentTMDBShowName = "American Dad!";
+            currentTMDBShowId = 2288; // Default to American Dad!
+            currentTMDBShowName = "Prison Break"; // Default show name
         }
         fetchEpisodeData();
     });
