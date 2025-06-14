@@ -6,18 +6,7 @@
     <title>My TV Shows</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="preconnect" href="https://api.themoviedb.org">
-    <link rel="dns-prefetch" href="https://api.themoviedb.org">
-    <link rel="preconnect" href="https://vidfast.pro">
-    <link rel="dns-prefetch" href="https://vidfast.pro">
-    <link rel="preconnect" href="https://image.tmdb.org">
-    <link rel="dns-prefetch" href="https://image.tmdb.org">
-
     <style>
-        * {
-            box-sizing: border-box;
-        }
-
         :root {
             --bg-dark-charcoal: #1A202C;
             --bg-medium-charcoal: #2D3748;
@@ -42,6 +31,9 @@
             /* New glow colors for consistent application */
             --constant-glow-color: rgba(66, 153, 225, 0.2); /* A softer blue for constant glow */
             --strong-glow-color: rgba(66, 153, 225, 0.6); /* For hover/active states */
+
+            /* Defined glow for video player and episode list container */
+            --video-player-glow: 0 0 10px 5px var(--blue-to-cyan-glow);
         }
         body {
             background: var(--bg-dark-charcoal);
@@ -55,15 +47,13 @@
             -webkit-tap-highlight-color: transparent; /* Attempt to remove blue tap highlight on mobile */
             display: flex; /* Make body a flex container */
             flex-direction: column; /* Stack children vertically */
-            align-items: stretch; /* Stretch children horizontally to fill width */
+            align-items: center; /* Center children horizontally */
             min-height: 100vh; /* Ensure body takes full viewport height */
-            /* box-sizing: border-box;  Removed from here as it's now global */
-            width: 100%; /* Ensure body spans full width */
+            box-sizing: border-box; /* Include padding in element's total width and height */
         }
         .container {
             max-width: 900px;
-            width: 100%; /* Take full available width, centered by body's align-items */
-            margin: 0 auto; /* Added for horizontal centering */
+            /* margin: 0 auto; Removed auto margins on container if body is a flex column */
             background: var(--bg-medium-charcoal);
             padding: 30px;
             border-radius: 12px;
@@ -72,9 +62,7 @@
             position: relative;
             overflow: hidden;
             flex-shrink: 0; /* Prevent container from shrinking */
-            display: flex; /* Make container a flex container */
-            flex-direction: column; /* Stack children vertically */
-            align-items: stretch; /* Stretch children horizontally */
+            width: 100%; /* Take full available width, centered by body's align-items */
         }
         .header-icon {
             position: absolute;
@@ -125,7 +113,6 @@
             flex-wrap: wrap;
             margin-bottom: 25px;
             gap: 20px;
-            width: 100%; /* Ensure it takes full width within container */
         }
         .selects-container-desktop {
             display: flex;
@@ -190,15 +177,15 @@
             min-height: 480px;
             height: 60vh;
             background: #000;
-            /* Added blue glow */
-            box-shadow: 0 0 10px 5px var(--blue-to-cyan-glow);
+            /* Applying the defined video player glow */
+            box-shadow: var(--video-player-glow);
             margin-bottom: 25px;
+            transition: box-shadow 0.3s ease; /* Add transition for smooth effect */
+            outline: none; /* Remove default outline */
         }
-        .content-area {
-            width: 100%; /* Ensure content area takes full width */
-            display: flex;
-            flex-direction: column;
-            align-items: stretch; /* Changed to stretch to allow children to fill width */
+        /* No extra glow on hover for video player - use the same glow as active */
+        #videoPlayer:hover {
+            box-shadow: var(--video-player-glow);
         }
         .custom-dropdown {
             position: relative;
@@ -207,75 +194,84 @@
             margin-bottom: 0;
         }
         .dropdown-display {
-            padding: 14px 20px;
-            font-size: 1.15em;
-            border-radius: 10px;
-            border: 2px solid var(--grey-border);
-            background: linear-gradient(145deg, var(--bg-dark-charcoal), var(--bg-medium-charcoal));
+            padding: 14px 20px; /* Increased padding */
+            font-size: 1.15em; /* Slightly larger font */
+            border-radius: 10px; /* More rounded corners */
+            border: 2px solid var(--grey-border); /* Thicker border */
+            background: linear-gradient(145deg, var(--bg-dark-charcoal), var(--bg-medium-charcoal)); /* Subtle gradient */
             color: var(--white-off);
             outline: none;
+            box-shadow: 0 0 12px 5px var(--strong-glow-color);
             font-weight: 500;
             width: 100%;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            /* box-sizing: border-box; Removed from here as it's now global */
+            box-sizing: border-box;
             transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
-            height: 55px;
-            box-shadow: 0 0 16px 4px rgba(66,153,225,0.55), 0 0 2px 1px var(--blue-primary);
+            height: 55px; /* Increased height */
         }
-        .dropdown-display:hover,
-        .dropdown-display.open,
-        .dropdown-display[aria-expanded="true"] {
+        .dropdown-display:hover {
             border-color: var(--blue-active-border);
-            box-shadow: 0 0 24px 8px rgba(66,153,225,0.7), 0 0 4px 2px var(--blue-active-border);
+            box-shadow: 0 0 28px 10px var(--blue-to-cyan-glow), 0 0 8px 2px var(--blue-primary);
             background: linear-gradient(145deg, var(--bg-medium-charcoal), var(--bg-dark-charcoal));
             color: #fff;
         }
-        .dropdown-display .arrow-icon {
-            margin-left: 10px;
-            transition: transform 0.3s ease;
+        .dropdown-display.open {
+            border-color: var(--blue-active-border); /* Distinct border when open */
+            box-shadow: 0 0 15px var(--blue-to-cyan-glow); /* Glow when open */
         }
-        .dropdown-display.open .arrow-icon {
+        .dropdown-display::after {
+            content: '\f078';
+            font-family: "Font Awesome 5 Free";
+            font-weight: 900;
+            margin-left: 10px;
+            transition: transform 0.2s;
+            color: var(--blue-primary); /* Blue arrow icon */
+        }
+        .dropdown-display.open::after {
             transform: rotate(180deg);
+            color: var(--blue-active-border); /* Darker blue arrow when open */
         }
         .dropdown-options {
             position: absolute;
-            top: calc(100% + 5px);
+            top: calc(100% + 5px); /* Slightly below the display box */
             left: 0;
             width: 100%;
             background: var(--bg-dark-charcoal);
-            border: 1px solid var(--blue-active-border);
-            border-radius: 8px;
-            box-shadow: 0 0 24px 8px rgba(66,153,225,0.5);
-            max-height: 250px;
+            border: 1px solid var(--blue-active-border); /* Distinct border for options */
+            border-radius: 8px; /* Rounded corners */
+            box-shadow: 0 8px 20px var(--shadow-dark); /* Stronger shadow */
+            max-height: 250px; /* Slightly more height */
             overflow-y: auto;
             z-index: 100;
             display: none;
             list-style: none;
-            padding: 5px 0;
+            padding: 5px 0; /* Adjusted padding */
             margin: 0;
         }
         .dropdown-options.open {
             display: block;
         }
         .dropdown-options li {
-            padding: 12px 20px;
-            font-size: 1.05em;
+            padding: 12px 20px; /* Increased padding for options */
+            font-size: 1.05em; /* Slightly larger font */
             cursor: pointer;
             text-align: left;
             transition: background-color 0.2s, color 0.2s;
             outline: none;
-            border-radius: 6px;
-            margin: 0 5px;
+            border-radius: 6px; /* Subtle rounded corners for each option */
+            margin: 0 5px; /* Margin to make options slightly inset */
+            background: transparent;
+            color: var(--white-off);
         }
-        .dropdown-options li:hover, .dropdown-options li.focused {
+        .dropdown-options li:hover,
+        .dropdown-options li.focused {
             background-color: var(--blue-primary);
             color: #fff;
-            transform: translateX(3px);
-            box-shadow: 0 0 12px 3px rgba(66,153,225,0.45);
         }
+
         #episodeListContainer {
             margin-top: 30px;
             padding: 20px;
@@ -287,12 +283,12 @@
             gap: 18px 16px;
             margin-bottom: 20px;
             justify-items: center;
-            box-shadow: 0 0 10px 5px var(--blue-to-cyan-glow);
-            width: 100%; /* Ensure it takes full width within container */
+            /* Glow for episode list container - matches video player */
+            box-shadow: var(--video-player-glow);
         }
         .episode-item-rm {
             display: flex;
-            flex-direction: column; /* Ensure content stacks vertically */
+            flex-direction: column;
             align-items: stretch;
             background: var(--bg-medium-charcoal);
             border-radius: 12px;
@@ -371,7 +367,7 @@
             right: 0;
             bottom: 0;
             background: rgba(0, 0, 0, 0.6);
-            display: none; /* Hidden by default */
+            display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -426,13 +422,12 @@
             margin-bottom: 6px;
             width: 100%;
         }
-        /* Make overlay visible only when active, and info below thumbnail hidden (for mobile compactness) */
         .episode-item-rm.active .episode-overlay-info {
             display: flex;
         }
-        /* .episode-item-rm.active .episode-info-below-thumbnail {
-            display: none; /* Removed for desktop to keep text always visible */
-        /* } */
+        .episode-item-rm.active .episode-info-below-thumbnail {
+            display: none;
+        }
 
         /* Enhanced styling for the search container */
         .search-container {
@@ -450,8 +445,8 @@
             border: 1px solid var(--blue-active-border); /* More visible border */
             position: relative; /* For potential future additions */
             overflow: hidden; /* To keep inner elements rounded */
-            /* box-sizing: border-box; Removed from here as it's now global */
-            /* Removed align-self as container is now flex and centers its items */
+            box-sizing: border-box; /* Include padding in element's total width and height */
+            align-self: center; /* Ensure it centers itself within the flex body */
         }
         .search-container::before {
             content: '';
@@ -517,7 +512,6 @@
             display: none;
             text-align: left;
             border: 1px solid var(--blue-primary); /* Added border */
-            width: 100%; /* Ensure it takes full width of container */
         }
         .search-result-item {
             display: flex;
@@ -528,7 +522,7 @@
             cursor: pointer;
             transition: background-color 0.2s, transform 0.2s;
             max-width: 100%;
-            /* box-sizing: border-box; Removed from here as it's now global */
+            box-sizing: border-box;
             border-radius: 8px; /* Added subtle border radius */
         }
         .search-result-item:last-child {
@@ -639,6 +633,13 @@
             background-color: #5A6578;
             transform: translateY(-2px);
         }
+        /* Server dropdown specific styles for desktop */
+        .desktop-server-dropdown {
+            position: absolute;
+            top: 20px; /* Adjust as needed */
+            left: 80px; /* Adjust as needed, to the right of library icon */
+            z-index: 10;
+        }
         @media (max-width: 700px) {
             body {
                 padding: 10px;
@@ -663,6 +664,11 @@
                 width: 100%;
                 align-items: center;
             }
+            /* Align server title to center on mobile */
+            .control-group label[for="serverSelectDisplay"] {
+                text-align: center;
+                width: 100%;
+            }
             .custom-dropdown {
                 max-width: 100%;
             }
@@ -686,7 +692,7 @@
                 border-radius: 9px;
             }
             .episode-info-below-thumbnail {
-                display: none; /* Hidden on mobile for compactness */
+                display: none;
             }
             .search-container {
                 flex-direction: row;
@@ -713,37 +719,46 @@
             .search-container button span {
                 display: none;
             }
+            /* Server dropdown mobile positioning */
+            #serverSelectContainerMobile { /* Use a distinct ID for mobile server container */
+                display: flex;
+                width: 100%;
+                order: -1; /* Place it before other items in the flex container */
+                margin-bottom: 20px;
+                align-self: center; /* Center it horizontally */
+            }
+            .desktop-server-dropdown {
+                display: none; /* Hide desktop version on mobile */
+            }
+            #serverSelectContainerMobile .custom-dropdown { /* Revert to custom-dropdown for mobile server */
+                 max-width: 100%; /* Full width on mobile */
+            }
         }
         @media (min-width: 701px) { /* Apply these styles for desktop (screens wider than 700px) */
             .episode-item-rm {
                 height: auto;
-                /* aspect-ratio: 16/9; Removed fixed aspect ratio for flexible content */
+                aspect-ratio: 16/9;
             }
             .episode-thumbnail-rm {
-                height: 100px; /* Fixed height for consistency */
-                width: 100%;
+                height: 100%;
                 border-radius: 9px;
             }
             .episode-thumbnail-rm img {
                 border-radius: 9px;
             }
             .episode-info-below-thumbnail {
-                display: flex; /* Always display on desktop */
-            }
-            /* If you want the overlay only on hover, and not when 'active', you can remove the .active rule for overlay */
-            .episode-item-rm:hover .episode-overlay-info {
-                display: flex; /* Show overlay on hover for all desktop items */
+                display: none;
             }
             .episode-item-rm.active .episode-overlay-info {
-                display: none; /* Hide overlay when active, as info is below */
-            }
-            /* Ensure info below thumbnail is always visible, even when active */
-            .episode-item-rm.active .episode-info-below-thumbnail {
                 display: flex;
             }
+            /* Force search bar to be centered on desktop */
             .search-container {
                 margin-left: auto;
                 margin-right: auto;
+            }
+            #serverSelectContainerMobile { /* Hide mobile version on desktop */
+                display: none;
             }
         }
     </style>
@@ -770,27 +785,45 @@
     <div id="contentArea" class="content-area">
         <iframe id="videoPlayer" src="" frameborder="0" allowfullscreen></iframe>
 
+        <!-- Desktop Server Dropdown (positioned absolutely in CSS) -->
+        <div id="serverSelectContainerDesktop" class="control-group desktop-server-dropdown">
+            <label for="serverSelectDisplayDesktop">Server:</label>
+            <div id="serverSelectDesktop" class="custom-dropdown" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="serverSelectDisplayDesktop">
+                <div class="dropdown-display" id="serverSelectDisplayDesktop" tabindex="0">Vidfast</div>
+                <ul class="dropdown-options" id="serverOptionsDesktop" role="listbox"></ul>
+            </div>
+        </div>
+
         <div class="selection-row">
+            <!-- Mobile Server Dropdown (positioned by flex order in CSS) -->
+            <div id="serverSelectContainerMobile" class="control-group">
+                <label for="serverSelectDisplay">Server:</label>
+                <div id="serverSelect" class="custom-dropdown" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="serverSelectDisplay">
+                    <div class="dropdown-display" id="serverSelectDisplay" tabindex="0">Vidfast</div>
+                    <ul class="dropdown-options" id="serverOptions" role="listbox"></ul>
+                </div>
+            </div>
+
             <div class="selects-container-desktop">
                 <div class="control-group">
                     <label for="seasonSelectDisplay">Season:</label>
                     <div id="seasonSelect" class="custom-dropdown" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="seasonSelectDisplay">
-                        <div class="dropdown-display" id="seasonSelectDisplay" tabindex="0">Season 1 <i class="fas fa-chevron-down arrow-icon"></i></div>
+                        <div class="dropdown-display" id="seasonSelectDisplay" tabindex="0">Season 1</div>
                         <ul class="dropdown-options" id="seasonOptions" role="listbox"></ul>
                     </div>
                 </div>
                 <div class="control-group">
                     <label for="episodeSelectDisplay">Episode:</label>
                     <div id="episodeSelect" class="custom-dropdown" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="episodeSelectDisplay">
-                        <div class="dropdown-display" id="episodeSelectDisplay" tabindex="0">Episode 1 <i class="fas fa-chevron-down arrow-icon"></i></div>
+                        <div class="dropdown-display" id="episodeSelectDisplay" tabindex="0">Episode 1</div>
                         <ul class="dropdown-options" id="episodeOptions" role="listbox"></ul>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div id="episodeListContainer" style="margin-top: 40px;"></div>
-        <div class="episode-action-buttons" style="margin-top: 25px;">
+        <div id="episodeListContainer" style="margin-top: 30px;"></div>
+        <div class="episode-action-buttons" style="margin-top: 35px;">
             <button id="loadMoreBtn" class="action-button">
             <i class="fas fa-plus-circle"></i> <span>Load More</span>
             </button>
@@ -819,16 +852,17 @@
     const MANUAL_PROGRESS_KEY_PREFIX = 'manualProgress_';
     const LAST_SHOW_ID_KEY = 'lastActiveShowId';
     const LAST_SHOW_NAME_KEY = 'lastShowName'; // Renamed to avoid confusion with current show's name
+    const LAST_SERVER_KEY = 'lastActiveServer'; // Key for storing the last selected server
 
     const PLACEHOLDER_IMAGE = 'https://placehold.co/160x90/1A1A1A/FFFFFF?text=NO+IMAGE';
     const EPISODES_DISPLAY_WINDOW_SIZE = 10;
     const TMDB_API_KEY = 'd62d816a3f48ed18c1dc5e157f4d73b2';
     const TMDB_READ_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkNjJkODE2YTNmNDhlZDE4YzFkYzVlMTU3ZjRkNzNiMiIsIm5iZiI6MTc0OTYyMjI0MS4wMjQsInN1YiI6IjY4NDkxZGUxMDQ2NzYwZGI4YTlmNTg1ZCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.UXLSaRBtR2aOvUObbrT3C4ctJcNG6MXTDjh1gu8y2Ks';
-    let currentTMDBShowId;
-    let currentTMDBShowName;
 
-    // Cache for episode metadata to avoid refetching
-    const tmdbDataCache = {};
+    let currentTMDBShowId = 1433;
+    let currentTMDBShowName = "American Dad!";
+    let currentServer = "vidfast"; // Default to vidfast as requested
+
     let episodeMetadata = {};
     let totalSeasons = 20;
 
@@ -845,6 +879,16 @@
     const videoPlayer = document.getElementById('videoPlayer');
     const episodeListContainer = document.getElementById('episodeListContainer');
 
+    // Mobile Server Dropdown elements
+    const serverSelectDivMobile = document.getElementById('serverSelect');
+    const serverSelectDisplayMobile = document.getElementById('serverSelectDisplay');
+    const serverOptionsUlMobile = document.getElementById('serverOptions');
+
+    // Desktop Server Dropdown elements
+    const serverSelectDivDesktop = document.getElementById('serverSelectDesktop');
+    const serverSelectDisplayDesktop = document.getElementById('serverSelectDisplayDesktop');
+    const serverOptionsUlDesktop = document.getElementById('serverOptionsDesktop');
+
     const seasonSelectDiv = document.getElementById('seasonSelect');
     const seasonSelectDisplay = document.getElementById('seasonSelectDisplay');
     const seasonOptionsUl = document.getElementById('seasonOptions');
@@ -856,11 +900,9 @@
     const loadMoreBtn = document.getElementById('loadMoreBtn');
     const showLessBtn = document.getElementById('showLessBtn');
 
-    // Intersection Observer for lazy loading episode images
-    let observer;
-
     window.addEventListener('message', (event) => {
-        if (event.origin && !event.origin.includes('vidfast.pro')) return;
+        // Only process messages from vidfast.pro if current server is vidfast
+        if (currentServer === "vidfast" && event.origin && !event.origin.includes('vidfast.pro')) return;
         if (typeof event.data === 'object' && event.data && event.data.type === 'currentTime') {
             const lastIframeTime = Math.floor(event.data.time || 0);
             setLastWatchedCurrentShow(currentSeason, currentEpisode, lastIframeTime, false);
@@ -869,7 +911,8 @@
     });
 
     function requestIframeCurrentTime() {
-        if (videoPlayer && videoPlayer.contentWindow) {
+        // Only request time if current server is vidfast
+        if (currentServer === "vidfast" && videoPlayer && videoPlayer.contentWindow) {
             videoPlayer.contentWindow.postMessage({ type: 'getCurrentTime' }, '*');
         }
     }
@@ -877,6 +920,8 @@
     videoPlayer.addEventListener('blur', requestIframeCurrentTime);
 
     document.addEventListener('click', (event) => {
+        if (!serverSelectDivMobile.contains(event.target)) closeDropdown(serverSelectDisplayMobile, serverOptionsUlMobile);
+        if (!serverSelectDivDesktop.contains(event.target)) closeDropdown(serverSelectDisplayDesktop, serverOptionsUlDesktop);
         if (!seasonSelectDiv.contains(event.target)) closeDropdown(seasonSelectDisplay, seasonOptionsUl);
         if (!episodeSelectDiv.contains(event.target)) closeDropdown(episodeSelectDisplay, episodeOptionsUl);
     });
@@ -964,83 +1009,62 @@
     }
 
     async function fetchEpisodeData() {
-        if (isLoadingData) return; // Prevent multiple simultaneous fetches
-
         isLoadingData = true;
         mainContentLoadingDiv.style.display = 'flex';
         document.getElementById('contentArea').style.display = 'none';
 
         try {
-            // Update the show title immediately
             showTitleElement.textContent = currentTMDBShowName;
-
-            // Check cache first
-            if (tmdbDataCache[currentTMDBShowId]) {
-                episodeMetadata = tmdbDataCache[currentTMDBShowId].episodeMetadata;
-                totalSeasons = tmdbDataCache[currentTMDBShowId].totalSeasons;
-                console.log(`Loaded data for show ID ${currentTMDBShowId} from cache.`);
-            } else {
-                // Validate TMDB_READ_TOKEN before making the fetch call
-                if (!TMDB_READ_TOKEN) {
-                    throw new Error("TMDB_READ_TOKEN is missing. Please provide a valid TMDB API key or read access token.");
-                }
-
-                const showDetailsResponse = await fetch(`https://api.themoviedb.org/3/tv/${currentTMDBShowId}`, {
-                    headers: { 'Authorization': `Bearer ${TMDB_READ_TOKEN}`, 'accept': 'application/json' }
-                });
-                if (!showDetailsResponse.ok) {
-                    const errorData = await showDetailsResponse.json().catch(() => ({}));
-                    throw new Error(`Failed to fetch show details: ${showDetailsResponse.status} - ${errorData.status_message || showDetailsResponse.statusText}.`);
-                }
-                const showDetails = await showDetailsResponse.json();
-                totalSeasons = showDetails.number_of_seasons;
-
-                // Fetch season data concurrently
-                const seasonPromises = Array.from({ length: totalSeasons }, (_, i) =>
-                    fetch(`https://api.themoviedb.org/3/tv/${currentTMDBShowId}/season/${i + 1}`, {
-                        headers: { 'Authorization': `Bearer ${TMDB_READ_TOKEN}`, 'accept': 'application/json' }
-                    }).then(res => {
-                        if (!res.ok) {
-                            console.warn(`Failed to fetch season ${i+1} for show ${currentTMDBShowId}: ${res.statusText}`);
-                            return null;
-                        }
-                        return res.json();
-                    })
-                );
-
-                const seasons = await Promise.all(seasonPromises);
-                episodeMetadata = {};
-                seasons.forEach(seasonObj => {
-                    const seasonNum = seasonObj?.season_number?.toString();
-                    if (seasonNum && seasonObj.episodes) {
-                        episodeMetadata[seasonNum] = Object.fromEntries(
-                            seasonObj.episodes.map(ep => [
-                                ep.episode_number.toString(),
-                                {
-                                    title: ep.name || `Episode ${ep.episode_number}`,
-                                    description: ep.overview || 'Description not available.',
-                                    image: ep.still_path ? `https://image.tmdb.org/t/p/w300${ep.still_path}` : PLACEHOLDER_IMAGE
-                                }
-                            ])
-                        );
-                    }
-                });
-                // Store in cache
-                tmdbDataCache[currentTMDBShowId] = { episodeMetadata, totalSeasons };
-                console.log(`Fetched and cached data for show ID ${currentTMDBShowId}.`);
+            // Validate TMDB_READ_TOKEN before making the fetch call
+            if (!TMDB_READ_TOKEN) {
+                throw new Error("TMDB_READ_TOKEN is missing. Please provide a valid TMDB API key or read access token.");
             }
 
+            const showDetailsResponse = await fetch(`https://api.themoviedb.org/3/tv/${currentTMDBShowId}`, {
+                headers: { 'Authorization': `Bearer ${TMDB_READ_TOKEN}`, 'accept': 'application/json' }
+            });
+            if (!showDetailsResponse.ok) {
+                const errorData = await showDetailsResponse.json().catch(() => ({}));
+                throw new Error(`Failed to fetch show details: ${showDetailsResponse.status} - ${errorData.status_message || showDetailsResponse.statusText}.`);
+            }
+            const showDetails = await showDetailsResponse.json();
+            totalSeasons = showDetails.number_of_seasons;
+
+            const seasonPromises = Array.from({ length: totalSeasons }, (_, i) =>
+                fetch(`https://api.themoviedb.org/3/tv/${currentTMDBShowId}/season/${i + 1}`, {
+                    headers: { 'Authorization': `Bearer ${TMDB_READ_TOKEN}`, 'accept': 'application/json' }
+                }).then(res => res.ok ? res.json() : null)
+            );
+
+            const seasons = await Promise.all(seasonPromises);
+            episodeMetadata = {};
+            seasons.forEach(seasonObj => {
+                const seasonNum = seasonObj?.season_number?.toString();
+                if (seasonNum && seasonObj.episodes) {
+                    episodeMetadata[seasonNum] = Object.fromEntries(
+                        seasonObj.episodes.map(ep => [
+                            ep.episode_number.toString(),
+                            {
+                                title: ep.name || `Episode ${ep.episode_number}`,
+                                description: ep.overview || 'Description not available.',
+                                image: ep.still_path ? `https://image.tmdb.org/t/p/w300${ep.still_path}` : PLACEHOLDER_IMAGE
+                            }
+                        ])
+                    );
+                }
+            });
+
             const lastWatched = getLastWatchedCurrentShow();
-            if (lastWatched && lastWatched.season && lastWatched.episode && episodeMetadata[lastWatched.season] && episodeMetadata[lastWatched.season][lastWatched.episode]) {
+            if (lastWatched && lastWatched.season && lastWatched.episode) {
                 currentSeason = lastWatched.season;
                 currentEpisode = lastWatched.episode;
             } else {
-                // Default to S1E1 if no valid last watched or data missing
                 currentSeason = 1;
                 currentEpisode = 1;
             }
 
             isShowingAllEpisodes = false;
+            renderServerSelect(); // Ensure servers are rendered after data load
             renderSeasonSelect();
             renderEpisodeSelect();
             renderEpisodeList(true);
@@ -1048,16 +1072,6 @@
         } catch (e) {
             console.error('Error loading episode data:', e);
             showCustomModal(`Failed to load show data: ${e.message}.`, 'alert');
-            // Reset to a default show if there's an error with the current one
-            currentTMDBShowId = 2288;
-            currentTMDBShowName = "Prison Break";
-            showTitleElement.textContent = currentTMDBShowName; // Ensure fallback title is set
-            episodeMetadata = {}; // Clear previous data
-            totalSeasons = 0; // Reset seasons
-            renderSeasonSelect();
-            renderEpisodeSelect();
-            episodeListContainer.innerHTML = '';
-            videoPlayer.src = 'about:blank'; // Clear video player
         } finally {
             isLoadingData = false;
             mainContentLoadingDiv.style.display = 'none';
@@ -1087,6 +1101,37 @@
         optionsListElement.querySelectorAll('.focused').forEach(el => el.classList.remove('focused'));
     }
 
+    function renderServerSelect() {
+        const servers = [
+            { value: "vidfast", text: "Vidfast" },
+            { value: "rivestream", text: "Ad-Free" } // Renamed Rivestream to Ad-Free
+        ];
+
+        // Clear and populate mobile server dropdown
+        serverOptionsUlMobile.innerHTML = '';
+        servers.forEach(server => {
+            const li = createDropdownOption(server.value, server.text, false);
+            serverOptionsUlMobile.appendChild(li);
+            li.addEventListener('click', () => {
+                selectServer(li.dataset.value);
+                closeDropdown(serverSelectDisplayMobile, serverOptionsUlMobile);
+            });
+        });
+        serverSelectDisplayMobile.textContent = servers.find(s => s.value === currentServer)?.text || "Vidfast"; // Default to Vidfast
+
+        // Clear and populate desktop server dropdown
+        serverOptionsUlDesktop.innerHTML = '';
+        servers.forEach(server => {
+            const li = createDropdownOption(server.value, server.text, false);
+            serverOptionsUlDesktop.appendChild(li);
+            li.addEventListener('click', () => {
+                selectServer(li.dataset.value);
+                closeDropdown(serverSelectDisplayDesktop, serverOptionsUlDesktop);
+            });
+        });
+        serverSelectDisplayDesktop.textContent = servers.find(s => s.value === currentServer)?.text || "Vidfast"; // Default to Vidfast
+    }
+
     function renderSeasonSelect() {
         seasonOptionsUl.innerHTML = '';
         for (let s = 1; s <= totalSeasons; s++) {
@@ -1097,13 +1142,12 @@
                 closeDropdown(seasonSelectDisplay, seasonOptionsUl);
             });
         }
-        // Update the display text and ensure the arrow icon is there
-        seasonSelectDisplay.innerHTML = `Season ${currentSeason} <i class="fas fa-chevron-down arrow-icon"></i>`;
+        seasonSelectDisplay.textContent = `Season ${currentSeason}`;
     }
 
     function renderEpisodeSelect() {
         episodeOptionsUl.innerHTML = '';
-        const numEpisodes = episodeMetadata[currentSeason] ? Object.keys(episodeMetadata[currentSeason]).length : 0; // Default to 0 if season data is missing
+        const numEpisodes = episodeMetadata[currentSeason] ? Object.keys(episodeMetadata[currentSeason]).length : 22;
         const watched = getWatchedCurrentShow();
         for (let i = 1; i <= numEpisodes; i++) {
             const isWatched = watched[currentSeason] && watched[currentSeason].includes(i);
@@ -1114,9 +1158,30 @@
                 closeDropdown(episodeSelectDisplay, episodeOptionsUl);
             });
         }
-        // Update the display text and ensure the arrow icon is there
-        episodeSelectDisplay.innerHTML = `Episode ${currentEpisode} <i class="fas fa-chevron-down arrow-icon"></i>`;
+        episodeSelectDisplay.textContent = `Episode ${currentEpisode}`;
     }
+
+    serverSelectDisplayMobile.addEventListener('click', () => {
+        const isOpen = serverOptionsUlMobile.classList.contains('open');
+        if (isOpen) closeDropdown(serverSelectDisplayMobile, serverOptionsUlMobile);
+        else {
+            openDropdown(serverSelectDisplayMobile, serverOptionsUlMobile);
+            closeDropdown(seasonSelectDisplay, seasonOptionsUl);
+            closeDropdown(episodeSelectDisplay, episodeOptionsUl);
+            closeDropdown(serverSelectDisplayDesktop, serverOptionsUlDesktop); // Close desktop dropdown if mobile is opened
+        }
+    });
+
+    serverSelectDisplayDesktop.addEventListener('click', () => {
+        const isOpen = serverOptionsUlDesktop.classList.contains('open');
+        if (isOpen) closeDropdown(serverSelectDisplayDesktop, serverOptionsUlDesktop);
+        else {
+            openDropdown(serverSelectDisplayDesktop, serverOptionsUlDesktop);
+            closeDropdown(seasonSelectDisplay, seasonOptionsUl);
+            closeDropdown(episodeSelectDisplay, episodeOptionsUl);
+            closeDropdown(serverSelectDisplayMobile, serverOptionsUlMobile); // Close mobile dropdown if desktop is opened
+        }
+    });
 
     seasonSelectDisplay.addEventListener('click', () => {
         const isOpen = seasonOptionsUl.classList.contains('open');
@@ -1124,6 +1189,8 @@
         else {
             openDropdown(seasonSelectDisplay, seasonOptionsUl);
             closeDropdown(episodeSelectDisplay, episodeOptionsUl);
+            closeDropdown(serverSelectDisplayMobile, serverOptionsUlMobile);
+            closeDropdown(serverSelectDisplayDesktop, serverOptionsUlDesktop);
         }
     });
 
@@ -1133,6 +1200,8 @@
         else {
             openDropdown(episodeSelectDisplay, episodeOptionsUl);
             closeDropdown(seasonSelectDisplay, seasonOptionsUl);
+            closeDropdown(serverSelectDisplayMobile, serverOptionsUlMobile);
+            closeDropdown(serverSelectDisplayDesktop, serverOptionsUlDesktop);
         }
     });
 
@@ -1149,7 +1218,7 @@
         if (event.key === 'Enter' || event.key === ' ') {
             if (isOpen) {
                 const currentFocused = optionsListElement.querySelector('.focused');
-                if (currentFocused) selectFn(parseInt(currentFocused.dataset.value)); // Ensure value is parsed as int
+                if (currentFocused) selectFn(currentFocused.dataset.value);
                 closeDropdown(displayElement, optionsListElement);
             } else {
                 openDropdown(displayElement, optionsListElement);
@@ -1173,8 +1242,18 @@
         options[nextIndex]?.scrollIntoView({ block: 'nearest' });
     }
 
+    serverSelectDisplayMobile.addEventListener('keydown', (event) => handleDropdownKeyboard(event, serverSelectDisplayMobile, serverOptionsUlMobile, selectServer));
+    serverSelectDisplayDesktop.addEventListener('keydown', (event) => handleDropdownKeyboard(event, serverSelectDisplayDesktop, serverOptionsUlDesktop, selectServer));
     seasonSelectDisplay.addEventListener('keydown', (event) => handleDropdownKeyboard(event, seasonSelectDisplay, seasonOptionsUl, (value) => selectSeason(parseInt(value))));
     episodeSelectDisplay.addEventListener('keydown', (event) => handleDropdownKeyboard(event, episodeSelectDisplay, episodeOptionsUl, (value) => selectEpisode(currentSeason, parseInt(value))));
+
+    function selectServer(serverName) {
+        if (currentServer === serverName) return;
+        currentServer = serverName;
+        localStorage.setItem(LAST_SERVER_KEY, currentServer);
+        renderServerSelect(); // Update display texts for both dropdowns
+        updateVideoPlayer(false); // Reload video with new server
+    }
 
     function selectSeason(seasonNum) {
         if (currentSeason === seasonNum) return;
@@ -1183,28 +1262,24 @@
         setLastWatchedCurrentShow(currentSeason, currentEpisode, 0, false);
         renderEpisodeSelect();
         isShowingAllEpisodes = false;
-        renderEpisodeList(true); // Full refresh for new season
+        renderEpisodeList(true);
         updateVideoPlayer(false);
-        seasonSelectDisplay.innerHTML = `Season ${currentSeason} <i class="fas fa-chevron-down arrow-icon"></i>`; // Update display with arrow
+        seasonSelectDisplay.textContent = `Season ${currentSeason}`;
     }
 
     function selectEpisode(season, episode) {
         currentSeason = season;
         currentEpisode = episode;
         setLastWatchedCurrentShow(currentSeason, currentEpisode, 0, false);
-        episodeSelectDisplay.innerHTML = `Episode ${currentEpisode} <i class="fas fa-chevron-down arrow-icon"></i>`; // Update display with arrow
-        renderEpisodeList(false); // Only update active state
+        episodeSelectDisplay.textContent = `Episode ${currentEpisode}`;
+        renderEpisodeList(false);
         updateVideoPlayer(false);
     }
 
     function renderEpisodeList(fullRefresh = false) {
-        if (observer) {
-            observer.disconnect(); // Disconnect old observer to avoid observing removed elements
-        }
         if (fullRefresh) {
             episodeListContainer.innerHTML = '';
         }
-
         const episodesInSeason = episodeMetadata[currentSeason] || {};
         const episodeNumbers = Object.keys(episodesInSeason).map(Number).sort((a, b) => a - b);
         const targetDisplayCount = isShowingAllEpisodes ? episodeNumbers.length : EPISODES_DISPLAY_WINDOW_SIZE;
@@ -1221,10 +1296,9 @@
             episodeItem.className = 'episode-item-rm';
             episodeItem.dataset.season = currentSeason;
             episodeItem.dataset.episode = episodeNum;
-            // Use data-src for lazy loading images
             episodeItem.innerHTML = `
                 <div class="episode-thumbnail-rm">
-                    <img data-src="${episode.image}" alt="Thumb" src="${PLACEHOLDER_IMAGE}" class="lazyload-img">
+                    <img src="${episode.image}" alt="Thumb" onerror="this.onerror=null; this.src='${PLACEHOLDER_IMAGE}';">
                     <div class="episode-overlay-info">
                         <div class="overlay-episode-number">Episode ${episodeNum}</div>
                         <div class="overlay-episode-title">${episode.title}</div>
@@ -1255,70 +1329,55 @@
         const canLoadMore = episodeNumbers.length > EPISODES_DISPLAY_WINDOW_SIZE;
         loadMoreBtn.style.display = canLoadMore && !isShowingAllEpisodes ? 'inline-flex' : 'none';
         showLessBtn.style.display = canLoadMore && isShowingAllEpisodes ? 'inline-flex' : 'none';
-
-        // Initialize Intersection Observer for lazy loading images
-        const lazyLoadImages = document.querySelectorAll('.lazyload-img');
-        if ('IntersectionObserver' in window) {
-            observer = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const img = entry.target;
-                        img.src = img.dataset.src;
-                        img.onload = () => img.classList.remove('lazyload-img'); // Remove class after loading
-                        observer.unobserve(img);
-                    }
-                });
-            }, {
-                rootMargin: '100px' // Load images when they are 100px from viewport
-            });
-
-            lazyLoadImages.forEach(img => {
-                observer.observe(img);
-            });
-        } else {
-            // Fallback for browsers that don't support Intersection Observer
-            lazyLoadImages.forEach(img => {
-                img.src = img.dataset.src;
-            });
-        }
     }
 
     function updateVideoPlayer(initialLoad = false) {
-        let secondsToStart = 0;
-        if (initialLoad) {
-            const lastWatched = getLastWatchedCurrentShow();
-            if (lastWatched && lastWatched.season === currentSeason && lastWatched.episode === currentEpisode && lastWatched.seconds > 0 && !lastWatched.finished) {
-                secondsToStart = lastWatched.seconds;
-            } else if (lastWatched && lastWatched.season === currentSeason && lastWatched.episode === currentEpisode && lastWatched.seconds === 0) {
-                // If vidfast's last watched time is 0, attempt to use manual progress
-                const manualProgress = getManualProgress(currentSeason, currentEpisode);
-                if (manualProgress > 0) {
-                    secondsToStart = manualProgress;
+        let url = '';
+        if (currentServer === "vidfast") {
+            let secondsToStart = 0;
+            if (initialLoad) {
+                const lastWatched = getLastWatchedCurrentShow();
+                if (lastWatched && lastWatched.season === currentSeason && lastWatched.episode === currentEpisode && lastWatched.seconds > 0 && !lastWatched.finished) {
+                    secondsToStart = lastWatched.seconds;
+                } else if (lastWatched && lastWatched.season === currentSeason && lastWatched.episode === currentEpisode && lastWatched.seconds === 0) {
+                    // If vidfast's last watched time is 0, attempt to use manual progress
+                    const manualProgress = getManualProgress(currentSeason, currentEpisode);
+                    if (manualProgress > 0) {
+                        secondsToStart = manualProgress;
+                    }
                 }
             }
-        }
-        const url = `https://vidfast.pro/tv/${currentTMDBShowId}/${currentSeason}/${currentEpisode}?autoPlay=true&nextButton=true&autoNext=true&theme=#1e90ff${secondsToStart > 0 ? '#' + secondsToStart : ''}`;
+            url = `https://vidfast.pro/tv/${currentTMDBShowId}/${currentSeason}/${currentEpisode}?autoPlay=true&nextButton=true&autoNext=true&theme=#1e90ff${secondsToStart > 0 ? '#' + secondsToStart : ''}`;
 
-        // Only update src if it's different to prevent unnecessary iframe reloads
-        if (videoPlayer.src !== url) {
-            videoPlayer.src = url;
-        }
+            // Only add markWatchedTimeout for Vidfast as Rivestream doesn't have time updates
+            if (window.markWatchedTimeout) clearTimeout(window.markWatchedTimeout);
+            window.markWatchedTimeout = setTimeout(() => {
+                let watched = getWatchedCurrentShow();
+                if (!watched[currentSeason]) watched[currentSeason] = [];
+                if (!watched[currentSeason].includes(currentEpisode)) {
+                    watched[currentSeason].push(currentEpisode);
+                    setWatchedCurrentShow(watched);
+                    renderEpisodeSelect();
+                    renderEpisodeList(false);
+                }
+            }, 10000);
+        } else if (currentServer === "rivestream") {
+            url = `https://rivestream.org/embed?type=tv&id=${currentTMDBShowId}&season=${currentSeason}&episode=${currentEpisode}`;
+            // Clear any existing timeout if switching away from Vidfast
+            if (window.markWatchedTimeout) clearTimeout(window.markWatchedTimeout);
 
-        if (window.markWatchedTimeout) clearTimeout(window.markWatchedTimeout);
-        window.markWatchedTimeout = setTimeout(() => {
+            // For Rivestream, mark as watched immediately since there's no direct progress tracking.
             let watched = getWatchedCurrentShow();
             if (!watched[currentSeason]) watched[currentSeason] = [];
             if (!watched[currentSeason].includes(currentEpisode)) {
                 watched[currentSeason].push(currentEpisode);
                 setWatchedCurrentShow(watched);
                 renderEpisodeSelect();
-                // Rerender specific episode item to update its 'watched' class
-                const currentEpisodeItem = episodeListContainer.querySelector(`[data-season="${currentSeason}"][data-episode="${currentEpisode}"]`);
-                if (currentEpisodeItem) {
-                    currentEpisodeItem.classList.add('watched');
-                }
+                renderEpisodeList(false);
             }
-        }, 10000);
+        }
+
+        if (videoPlayer.src !== url) videoPlayer.src = url;
     }
 
     document.getElementById('clearDataBtn').addEventListener('click', () => {
@@ -1330,12 +1389,9 @@
                     }
                 });
                 videoPlayer.src = 'about:blank';
-                // Clear the in-memory cache as well
-                for (const key in tmdbDataCache) {
-                    delete tmdbDataCache[key];
-                }
                 currentTMDBShowId = 1433;
-                currentTMDBShowName = "American Dad!";
+                currentTMDBShowName = "Prison Break";
+                currentServer = "vidfast"; // Reset server as well to default
                 fetchEpisodeData();
                 showCustomModal('All local data has been cleared.', 'alert');
             }
@@ -1344,11 +1400,11 @@
 
     loadMoreBtn.addEventListener('click', () => {
         isShowingAllEpisodes = true;
-        renderEpisodeList(true); // Full refresh to display all
+        renderEpisodeList(false);
     });
     showLessBtn.addEventListener('click', () => {
         isShowingAllEpisodes = false;
-        renderEpisodeList(true); // Full refresh to display limited
+        renderEpisodeList(true);
     });
 
     async function searchShows(query) {
@@ -1388,7 +1444,7 @@
                 localStorage.setItem(LAST_SHOW_NAME_KEY, currentTMDBShowName);
                 searchResultsDiv.style.display = 'none';
                 showSearchInput.value = '';
-                fetchEpisodeData(); // This will now leverage the cache or refetch if necessary
+                fetchEpisodeData();
             });
             searchResultsDiv.appendChild(resultItem);
         });
@@ -1402,15 +1458,28 @@
     document.addEventListener('DOMContentLoaded', () => {
         const storedShowId = localStorage.getItem(LAST_SHOW_ID_KEY);
         const storedShowName = localStorage.getItem(LAST_SHOW_NAME_KEY);
+        const storedServer = localStorage.getItem(LAST_SERVER_KEY); // Get stored server
+
         if (storedShowId && storedShowName) {
             currentTMDBShowId = parseInt(storedShowId);
             currentTMDBShowName = storedShowName;
         } else {
-            currentTMDBShowId = 2288; // Default to American Dad!
-            currentTMDBShowName = "Prison Break"; // Default show name
+            currentTMDBShowId = 2288;
+            currentTMDBShowName = "Prison Break";
         }
+
+        if (storedServer) {
+            currentServer = storedServer;
+        } else {
+            currentServer = "vidfast"; // Default to Vidfast if nothing stored
+        }
+
         fetchEpisodeData();
     });
+</script>
+
+</body>
+</html>
 </script>
 
 </body>
