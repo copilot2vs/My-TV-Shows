@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <!-- Corrected viewport for consistent mobile experience -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
     <title>My TV Shows</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -789,11 +790,6 @@
             .search-container button span {
                 display: none;
             }
-            /* Force search bar to be centered on desktop */
-            .search-container {
-                margin-left: auto;
-                margin-right: auto;
-            }
         }
         @media (min-width: 701px) { /* Apply these styles for desktop (screens wider than 700px) */
             .episode-item-rm {
@@ -812,6 +808,10 @@
             }
             .episode-item-rm.active .episode-overlay-info {
                 display: flex;
+            }
+            .search-container {
+                margin-left: auto;
+                margin-right: auto;
             }
         }
     </style>
@@ -910,25 +910,29 @@
 </div>
 
 <script type="module">
+    // Constants for Local Storage Keys
     const WATCHED_KEY_PREFIX = 'tvShowWatched_';
     const LAST_WATCHED_KEY_PREFIX = 'tvShowLastWatched_';
     const MANUAL_PROGRESS_KEY_PREFIX = 'manualProgress_';
     const LAST_SHOW_ID_KEY = 'lastActiveShowId';
-    const LAST_SHOW_NAME_KEY = 'lastShowName';
+    // FIX: Standardized LAST_SHOW_NAME_KEY to match Library.html
+    const LAST_SHOW_NAME_KEY = 'lastActiveShowName'; 
     const LAST_SERVER_KEY = 'lastActiveServer';
-    const LAST_AGGREGATOR_KEY = 'lastActiveAggregator'; // New key for aggregator
+    const LAST_AGGREGATOR_KEY = 'lastActiveAggregator';
 
+    // Default values and API keys
     const PLACEHOLDER_IMAGE = 'https://placehold.co/160x90/1A1A1A/FFFFFF?text=NO+IMAGE';
     const EPISODES_DISPLAY_WINDOW_SIZE = 10;
     const TMDB_API_KEY = 'd62d816a3f48ed18c1dc5e157f4d73b2';
     const TMDB_READ_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkNjJkODE2YTNmNDhlZDE4YzFkYzVlMTU3ZjRkNzNiMiIsIm5iZiI6MTc0OTYyMjI0MS4wMjQsInN1YiI6IjY4NDkxZGUxMDQ2NzYwZGI4YTlmNTg1ZCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.UXLSaRBtR2aOvUObbrT3C4ctJcNG6MXTDjh1gu8y2Ks';
 
-    let currentTMDBShowId = 1433;
+    // Global state variables
+    let currentTMDBShowId = 1433; // Default to American Dad!
     let currentTMDBShowName = "American Dad!";
     let currentServer = "vidfast";
     let currentRivestreamAggregator = "32"; // Default aggregator for Rivestream
 
-    let episodeMetadata = {};
+    let episodeMetadata = {}; // Stores details fetched from TMDB for each episode
     let totalSeasons = 20;
 
     let currentSeason = 1;
@@ -936,6 +940,7 @@
     let isShowingAllEpisodes = false;
     let isLoadingData = false;
 
+    // DOM Element References
     const showTitleElement = document.getElementById('showTitle');
     const showSearchInput = document.getElementById('showSearchInput');
     const searchShowBtn = document.getElementById('searchShowBtn');
@@ -944,7 +949,7 @@
     const videoPlayer = document.getElementById('videoPlayer');
     const episodeListContainer = document.getElementById('episodeListContainer');
 
-    // Season & Episode Dropdown elements (remaining)
+    // Season & Episode Dropdown elements
     const seasonSelectDiv = document.getElementById('seasonSelect');
     const seasonSelectDisplay = document.getElementById('seasonSelectDisplay');
     const seasonOptionsUl = document.getElementById('seasonOptions');
@@ -961,11 +966,15 @@
     const serverSelectionModalOverlay = document.getElementById('serverSelectionModalOverlay');
     const serverVidfastRadio = document.getElementById('serverVidfast');
     const serverRivestreamRadio = document.getElementById('serverRivestream');
-    const aggregatorInfoDiv = document.getElementById('aggregatorInfo'); // Changed ID
+    const aggregatorInfoDiv = document.getElementById('aggregatorInfo');
 
     const saveServerSelectionBtn = document.getElementById('saveServerSelectionBtn');
     const cancelServerSelectionBtn = document.getElementById('cancelServerSelectionBtn');
 
+    /**
+     * Listens for messages from the iframe to get current playback time (Vidfast only).
+     * This helps in saving the last watched position accurately.
+     */
     window.addEventListener('message', (event) => {
         // Only process messages from vidfast.pro if current server is vidfast
         if (currentServer === "vidfast" && event.origin && !event.origin.includes('vidfast.pro')) return;
@@ -976,21 +985,31 @@
         }
     });
 
+    /**
+     * Requests the current time from the iframe video player (Vidfast only).
+     * This is typically triggered when the iframe loses focus.
+     */
     function requestIframeCurrentTime() {
-        // Only request time if current server is vidfast
         if (currentServer === "vidfast" && videoPlayer && videoPlayer.contentWindow) {
             videoPlayer.contentWindow.postMessage({ type: 'getCurrentTime' }, '*');
         }
     }
 
+    // Event listener for video player blur (losing focus)
     videoPlayer.addEventListener('blur', requestIframeCurrentTime);
 
+    // Event listener to close dropdowns when clicking outside
     document.addEventListener('click', (event) => {
-        // Close season and episode dropdowns if clicked outside
         if (!seasonSelectDiv.contains(event.target)) closeDropdown(seasonSelectDisplay, seasonOptionsUl);
         if (!episodeSelectDiv.contains(event.target)) closeDropdown(episodeSelectDisplay, episodeOptionsUl);
     });
 
+    /**
+     * Displays a custom modal for alerts or confirmations.
+     * @param {string} message - The message to display in the modal.
+     * @param {'alert'|'confirm'} type - The type of modal ('alert' or 'confirm').
+     * @param {function(boolean):void} [onConfirm=null] - Callback function for 'confirm' type.
+     */
     function showCustomModal(message, type = 'alert', onConfirm = null) {
         const modalOverlay = document.getElementById('customModalOverlay');
         const modalTitle = document.getElementById('modalTitle');
@@ -999,10 +1018,12 @@
         const modalCancelBtn = document.getElementById('modalCancelBtn');
         const modalCloseBtn = document.getElementById('modalCloseBtn');
 
+        // Hide all buttons initially
         modalConfirmBtn.style.display = 'none';
         modalCancelBtn.style.display = 'none';
         modalCloseBtn.style.display = 'none';
 
+        // Clear previous event listeners
         modalConfirmBtn.onclick = null;
         modalCancelBtn.onclick = null;
         modalCloseBtn.onclick = null;
@@ -1021,28 +1042,49 @@
                 modalOverlay.classList.remove('visible');
                 if (onConfirm) onConfirm(false);
             };
-        } else {
+        } else { // 'alert' type
             modalTitle.textContent = 'Notification';
             modalCloseBtn.style.display = 'inline-block';
             modalCloseBtn.onclick = () => modalOverlay.classList.remove('visible');
         }
-        modalOverlay.classList.add('visible');
+        modalOverlay.classList.add('visible'); // Make modal visible
     }
 
+    // --- Local Storage Management Functions ---
+
+    /**
+     * Retrieves the 'watched' status for the current show from local storage.
+     * @returns {Object} An object where keys are season numbers and values are arrays of watched episode numbers.
+     */
     function getWatchedLocal() {
         const stored = localStorage.getItem(WATCHED_KEY_PREFIX + currentTMDBShowId);
         return stored ? JSON.parse(stored) : {};
     }
 
+    /**
+     * Saves the 'watched' status for the current show to local storage.
+     * @param {Object} watched - The object containing watched episode information.
+     */
     function setWatchedLocal(watched) {
         localStorage.setItem(WATCHED_KEY_PREFIX + currentTMDBShowId, JSON.stringify(watched));
     }
 
+    /**
+     * Retrieves the last watched episode and season for the current show.
+     * @returns {Object|null} An object with season, episode, seconds, finished status, and timestamp, or null if not found.
+     */
     function getLastWatchedLocal() {
         const stored = localStorage.getItem(LAST_WATCHED_KEY_PREFIX + currentTMDBShowId);
         return stored ? JSON.parse(stored) : null;
     }
 
+    /**
+     * Saves the last watched episode and season for the current show, along with progress.
+     * @param {number} season - The season number.
+     * @param {number} episode - The episode number.
+     * @param {number} seconds - The current playback time in seconds.
+     * @param {boolean} finished - True if the episode was finished.
+     */
     function setLastWatchedLocal(season, episode, seconds, finished) {
         const data = {
             season,
@@ -1050,22 +1092,35 @@
             seconds,
             finished,
             showName: currentTMDBShowName,
-            lastWatchedTimestamp: Date.now()
+            lastWatchedTimestamp: Date.now() // Record timestamp for sorting in library
         };
         localStorage.setItem(LAST_WATCHED_KEY_PREFIX + currentTMDBShowId, JSON.stringify(data));
     }
 
+    /**
+     * Retrieves manually set progress for a specific episode.
+     * @param {number} season - The season number.
+     * @param {number} episode - The episode number.
+     * @returns {number} The manually saved progress in seconds, or 0 if not found.
+     */
     function getManualProgress(season, episode) {
         const key = `${MANUAL_PROGRESS_KEY_PREFIX}${currentTMDBShowId}_${season}_${episode}`;
         const stored = localStorage.getItem(key);
         return stored ? parseInt(stored) : 0;
     }
 
+    /**
+     * Updates manually set progress for a specific episode.
+     * @param {number} season - The season number.
+     * @param {number} episode - The episode number.
+     * @param {number} seconds - The progress in seconds to save.
+     */
     function updateManualProgress(season, episode, seconds) {
         const key = `${MANUAL_PROGRESS_KEY_PREFIX}${currentTMDBShowId}_${season}_${episode}`;
         localStorage.setItem(key, seconds.toString());
     }
 
+    // Helper functions for current show
     function getWatchedCurrentShow() { return getWatchedLocal(); }
     function setWatchedCurrentShow(watchedForThisShow) { setWatchedLocal(watchedForThisShow); }
     function getLastWatchedCurrentShow() { return getLastWatchedLocal(); }
@@ -1073,18 +1128,25 @@
         setLastWatchedLocal(season, episode, seconds, finished);
     }
 
+    /**
+     * Fetches TV show and episode data from TMDB API.
+     * Updates season/episode dropdowns and episode list based on fetched data.
+     * Also sets the initial video player source.
+     */
     async function fetchEpisodeData() {
         isLoadingData = true;
         mainContentLoadingDiv.style.display = 'flex';
         document.getElementById('contentArea').style.display = 'none';
 
         try {
-            showTitleElement.textContent = currentTMDBShowName; // Always update show title
-            // Validate TMDB_READ_TOKEN before making the fetch call
+            showTitleElement.textContent = currentTMDBShowName; // Always update show title based on current selection
+            
+            // Basic validation for TMDB_READ_TOKEN
             if (!TMDB_READ_TOKEN) {
                 throw new Error("TMDB_READ_TOKEN is missing. Please provide a valid TMDB API key or read access token.");
             }
 
+            // Fetch general show details to get total seasons
             const showDetailsResponse = await fetch(`https://api.themoviedb.org/3/tv/${currentTMDBShowId}`, {
                 headers: { 'Authorization': `Bearer ${TMDB_READ_TOKEN}`, 'accept': 'application/json' }
             });
@@ -1095,10 +1157,11 @@
             const showDetails = await showDetailsResponse.json();
             totalSeasons = showDetails.number_of_seasons;
 
+            // Fetch data for all seasons concurrently
             const seasonPromises = Array.from({ length: totalSeasons }, (_, i) =>
                 fetch(`https://api.themoviedb.org/3/tv/${currentTMDBShowId}/season/${i + 1}`, {
                     headers: { 'Authorization': `Bearer ${TMDB_READ_TOKEN}`, 'accept': 'application/json' }
-                }).then(res => res.ok ? res.json() : null)
+                }).then(res => res.ok ? res.json() : null) // Return null if fetch fails for a season
             );
 
             const seasons = await Promise.all(seasonPromises);
@@ -1119,23 +1182,31 @@
                 }
             });
 
+            // Determine current season and episode to load based on last watched, or default to S1E1
             const lastWatched = getLastWatchedCurrentShow();
             if (lastWatched && lastWatched.season && lastWatched.episode) {
-                currentSeason = lastWatched.season;
-                currentEpisode = lastWatched.episode;
+                // Check if the last watched season/episode still exists in the fetched metadata
+                if (episodeMetadata[lastWatched.season] && episodeMetadata[lastWatched.season][lastWatched.episode]) {
+                    currentSeason = lastWatched.season;
+                    currentEpisode = lastWatched.episode;
+                } else {
+                    // Fallback to S1E1 if last watched episode/season is no longer valid (e.g., deleted from TMDB)
+                    currentSeason = 1;
+                    currentEpisode = 1;
+                }
             } else {
                 currentSeason = 1;
                 currentEpisode = 1;
             }
 
-            isShowingAllEpisodes = false;
-            renderSeasonSelect();
-            renderEpisodeSelect();
-            renderEpisodeList(true);
-            updateVideoPlayer(true);
+            isShowingAllEpisodes = false; // Reset episode display mode
+            renderSeasonSelect(); // Populate season dropdown
+            renderEpisodeSelect(); // Populate episode dropdown
+            renderEpisodeList(true); // Render episode cards (full refresh)
+            updateVideoPlayer(true); // Load video player (initial load allows seeking)
         } catch (e) {
             console.error('Error loading episode data:', e);
-            showCustomModal(`Failed to load show data: ${e.message}.`, 'alert');
+            showCustomModal(`Failed to load show data: ${e.message}. Please check your internet connection or try again later.`, 'alert');
         } finally {
             isLoadingData = false;
             document.getElementById('contentArea').style.display = 'block';
@@ -1143,6 +1214,13 @@
         }
     }
 
+    /**
+     * Creates a dropdown option list item.
+     * @param {string|number} value - The data-value attribute for the list item.
+     * @param {string} text - The text content of the list item.
+     * @param {boolean} isWatched - True if the option represents a watched episode/season.
+     * @returns {HTMLElement} The created li element.
+     */
     function createDropdownOption(value, text, isWatched) {
         const li = document.createElement('li');
         li.dataset.value = value;
@@ -1152,34 +1230,52 @@
         return li;
     }
 
+    /**
+     * Opens a custom dropdown.
+     * @param {HTMLElement} displayElement - The element that triggers the dropdown (e.g., seasonSelectDisplay).
+     * @param {HTMLElement} optionsListElement - The ul element containing the options.
+     */
     function openDropdown(displayElement, optionsListElement) {
         displayElement.classList.add('open');
         displayElement.setAttribute('aria-expanded', 'true');
         optionsListElement.classList.add('open');
     }
 
+    /**
+     * Closes a custom dropdown.
+     * @param {HTMLElement} displayElement - The element that triggers the dropdown.
+     * @param {HTMLElement} optionsListElement - The ul element containing the options.
+     */
     function closeDropdown(displayElement, optionsListElement) {
         displayElement.classList.remove('open');
         displayElement.setAttribute('aria-expanded', 'false');
         optionsListElement.classList.remove('open');
+        // Remove focus class from any focused option
         optionsListElement.querySelectorAll('.focused').forEach(el => el.classList.remove('focused'));
     }
 
+    /**
+     * Populates the season dropdown with available seasons.
+     */
     function renderSeasonSelect() {
-        seasonOptionsUl.innerHTML = '';
+        seasonOptionsUl.innerHTML = ''; // Clear existing options
         for (let s = 1; s <= totalSeasons; s++) {
-            const li = createDropdownOption(s, `Season ${s}`, false);
+            const li = createDropdownOption(s, `Season ${s}`, false); // Watched status not applicable for seasons
             seasonOptionsUl.appendChild(li);
             li.addEventListener('click', () => {
                 selectSeason(parseInt(li.dataset.value));
                 closeDropdown(seasonSelectDisplay, seasonOptionsUl);
             });
         }
-        seasonSelectDisplay.textContent = `Season ${currentSeason}`;
+        seasonSelectDisplay.textContent = `Season ${currentSeason}`; // Set display text
     }
 
+    /**
+     * Populates the episode dropdown with episodes for the current season.
+     * Marks episodes as watched if they are.
+     */
     function renderEpisodeSelect() {
-        episodeOptionsUl.innerHTML = '';
+        episodeOptionsUl.innerHTML = ''; // Clear existing options
         const episodesInSeason = episodeMetadata[currentSeason] || {};
         const numEpisodes = Object.keys(episodesInSeason).length;
 
@@ -1193,15 +1289,16 @@
                 closeDropdown(episodeSelectDisplay, episodeOptionsUl);
             });
         }
-        episodeSelectDisplay.textContent = `Episode ${currentEpisode}`;
+        episodeSelectDisplay.textContent = `Episode ${currentEpisode}`; // Set display text
     }
 
+    // Event listeners for dropdown display clicks
     seasonSelectDisplay.addEventListener('click', () => {
         const isOpen = seasonOptionsUl.classList.contains('open');
         if (isOpen) closeDropdown(seasonSelectDisplay, seasonOptionsUl);
         else {
             openDropdown(seasonSelectDisplay, seasonOptionsUl);
-            closeDropdown(episodeSelectDisplay, episodeOptionsUl);
+            closeDropdown(episodeSelectDisplay, episodeOptionsUl); // Close other dropdown
         }
     });
 
@@ -1210,18 +1307,25 @@
         if (isOpen) closeDropdown(episodeSelectDisplay, episodeOptionsUl);
         else {
             openDropdown(episodeSelectDisplay, episodeOptionsUl);
-            closeDropdown(seasonSelectDisplay, seasonOptionsUl);
+            closeDropdown(seasonSelectDisplay, seasonOptionsUl); // Close other dropdown
         }
     });
 
+    /**
+     * Handles keyboard navigation for custom dropdowns.
+     * @param {KeyboardEvent} event - The keyboard event.
+     * @param {HTMLElement} displayElement - The element that triggers the dropdown.
+     * @param {HTMLElement} optionsListElement - The ul element containing the options.
+     * @param {function(string):void} selectFn - The function to call when an option is selected.
+     */
     function handleDropdownKeyboard(event, displayElement, optionsListElement, selectFn) {
         if (!['Enter', ' ', 'Escape', 'ArrowDown', 'ArrowUp'].includes(event.key)) return;
-        event.preventDefault();
+        event.preventDefault(); // Prevent default scroll behavior for arrow keys
 
         const isOpen = optionsListElement.classList.contains('open');
         if (event.key === 'Escape') {
             closeDropdown(displayElement, optionsListElement);
-            displayElement.focus();
+            displayElement.focus(); // Return focus to the display element
             return;
         }
         if (event.key === 'Enter' || event.key === ' ') {
@@ -1235,61 +1339,85 @@
             return;
         }
 
+        // Handle ArrowUp/ArrowDown
         if (!isOpen) openDropdown(displayElement, optionsListElement);
         const options = Array.from(optionsListElement.children);
-        const currentFocused = optionsListElement.querySelector('.focused');
+        let currentFocused = optionsListElement.querySelector('.focused');
         let nextIndex = 0;
+
         if (currentFocused) {
             const currentIndex = options.indexOf(currentFocused);
             currentFocused.classList.remove('focused');
             if (event.key === 'ArrowDown') nextIndex = (currentIndex + 1) % options.length;
             else nextIndex = (currentIndex - 1 + options.length) % options.length;
         } else if (event.key === 'ArrowUp') {
-            nextIndex = options.length - 1;
+            nextIndex = options.length - 1; // Wrap around to last item if no item is focused
         }
-        options[nextIndex]?.classList.add('focused');
-        options[nextIndex]?.scrollIntoView({ block: 'nearest' });
+        
+        if (options[nextIndex]) {
+            options[nextIndex].classList.add('focused');
+            options[nextIndex].scrollIntoView({ block: 'nearest' }); // Scroll to make focused item visible
+        }
     }
 
+    // Attach keyboard event listeners to dropdown displays
     seasonSelectDisplay.addEventListener('keydown', (event) => handleDropdownKeyboard(event, seasonSelectDisplay, seasonOptionsUl, (value) => selectSeason(parseInt(value))));
     episodeSelectDisplay.addEventListener('keydown', (event) => handleDropdownKeyboard(event, episodeSelectDisplay, episodeOptionsUl, (value) => selectEpisode(currentSeason, parseInt(value))));
 
+    /**
+     * Changes the currently selected season and loads its first episode.
+     * @param {number} seasonNum - The new season number.
+     */
     function selectSeason(seasonNum) {
-        if (currentSeason === seasonNum) return;
+        if (currentSeason === seasonNum) return; // No change needed
         currentSeason = seasonNum;
-        currentEpisode = 1;
-        setLastWatchedCurrentShow(currentSeason, currentEpisode, 0, false);
-        renderEpisodeSelect();
-        isShowingAllEpisodes = false;
-        renderEpisodeList(true);
-        updateVideoPlayer(false);
-        seasonSelectDisplay.textContent = `Season ${currentSeason}`;
+        currentEpisode = 1; // Always reset to first episode of the new season
+        setLastWatchedCurrentShow(currentSeason, currentEpisode, 0, false); // Update last watched
+        renderEpisodeSelect(); // Re-render episode dropdown for new season
+        isShowingAllEpisodes = false; // Reset episode display to windowed view
+        renderEpisodeList(true); // Re-render episode cards fully
+        updateVideoPlayer(false); // Load video player for new episode
+        seasonSelectDisplay.textContent = `Season ${currentSeason}`; // Update display text
     }
 
+    /**
+     * Changes the currently selected episode.
+     * @param {number} season - The season number of the episode.
+     * @param {number} episode - The new episode number.
+     */
     function selectEpisode(season, episode) {
-        currentSeason = season;
-        currentEpisode = episode;
-        setLastWatchedCurrentShow(currentSeason, currentEpisode, 0, false);
-        episodeSelectDisplay.textContent = `Episode ${currentEpisode}`;
-        renderEpisodeList(false);
-        updateVideoPlayer(false);
+        currentSeason = season; // Update current season
+        currentEpisode = episode; // Update current episode
+        setLastWatchedCurrentShow(currentSeason, currentEpisode, 0, false); // Update last watched
+        episodeSelectDisplay.textContent = `Episode ${currentEpisode}`; // Update display text
+        renderEpisodeList(false); // Re-render episode cards (no full refresh, just active state update)
+        updateVideoPlayer(false); // Load video player for new episode
     }
 
+    /**
+     * Renders or updates the list of episode cards.
+     * @param {boolean} fullRefresh - If true, clears and re-renders the entire list.
+     */
     function renderEpisodeList(fullRefresh = false) {
         if (fullRefresh) {
-            episodeListContainer.innerHTML = '';
+            episodeListContainer.innerHTML = ''; // Clear all existing cards
         }
         const episodesInSeason = episodeMetadata[currentSeason] || {};
+        // Get episode numbers, convert to number, and sort numerically
         const episodeNumbers = Object.keys(episodesInSeason).map(Number).sort((a, b) => a - b);
+        
+        // Determine how many episodes to display initially or if showing all
         const targetDisplayCount = isShowingAllEpisodes ? episodeNumbers.length : EPISODES_DISPLAY_WINDOW_SIZE;
 
         const fragment = document.createDocumentFragment();
+        // Determine starting index for appending new episodes
         const startIndex = fullRefresh ? 0 : episodeListContainer.children.length;
 
+        // Iterate and create episode cards
         for (let i = startIndex; i < targetDisplayCount && i < episodeNumbers.length; i++) {
             const episodeNum = episodeNumbers[i];
             const episode = episodesInSeason[episodeNum.toString()];
-            if (!episode) continue;
+            if (!episode) continue; // Skip if episode data is missing
 
             const episodeItem = document.createElement('div');
             episodeItem.className = 'episode-item-rm';
@@ -1297,7 +1425,7 @@
             episodeItem.dataset.episode = episodeNum;
             episodeItem.innerHTML = `
                 <div class="episode-thumbnail-rm">
-                    <img src="${episode.image}" alt="Thumb" onerror="this.onerror=null; this.src='${PLACEHOLDER_IMAGE}';">
+                    <img src="${episode.image}" alt="Episode Thumbnail" onerror="this.onerror=null; this.src='${PLACEHOLDER_IMAGE}';">
                     <div class="episode-overlay-info">
                         <div class="overlay-episode-number">Episode ${episodeNum}</div>
                         <div class="overlay-episode-title">${episode.title}</div>
@@ -1308,15 +1436,18 @@
                     <div class="episode-description-rm">${episode.description}</div>
                 </div>
             `;
+            // Add click listener to select the episode
             episodeItem.addEventListener('click', () => {
                 selectEpisode(parseInt(episodeItem.dataset.season), parseInt(episodeItem.dataset.episode));
             });
             fragment.appendChild(episodeItem);
         }
+        // Append newly created cards if any
         if (fragment.children.length > 0) {
             episodeListContainer.appendChild(fragment);
         }
 
+        // Update 'watched' and 'active' classes for all visible episode cards
         const watched = getWatchedCurrentShow();
         episodeListContainer.querySelectorAll('.episode-item-rm').forEach(item => {
             const isWatched = watched[item.dataset.season]?.includes(parseInt(item.dataset.episode));
@@ -1325,15 +1456,20 @@
             item.classList.toggle('active', isActive);
         });
 
+        // Manage visibility of "Load More" and "Show Less" buttons
         const canLoadMore = episodeNumbers.length > EPISODES_DISPLAY_WINDOW_SIZE;
         loadMoreBtn.style.display = canLoadMore && !isShowingAllEpisodes ? 'inline-flex' : 'none';
         showLessBtn.style.display = canLoadMore && isShowingAllEpisodes ? 'inline-flex' : 'none';
     }
 
+    /**
+     * Updates the video player's source based on the current show, season, episode, and server.
+     * @param {boolean} initialLoad - True if this is the initial load of the video player, allowing seeking from last watched time.
+     */
     function updateVideoPlayer(initialLoad = false) {
         let url = '';
-        videoPlayer.src = 'about:blank'; // Clear existing iframe content immediately
-        if (window.markWatchedTimeout) clearTimeout(window.markWatchedTimeout); // Clear existing timeout
+        videoPlayer.src = 'about:blank'; // Clear existing iframe content to prevent old video playing
+        if (window.markWatchedTimeout) clearTimeout(window.markWatchedTimeout); // Clear any existing 'mark as watched' timeout
 
         if (currentServer === "vidfast") {
             let secondsToStart = 0;
@@ -1349,117 +1485,141 @@
                     }
                 }
             }
-            // Autoplay is explicitly false/removed for Vidfast as per request
+            // Construct Vidfast URL. Autoplay is not explicitly enabled here by parameter due to Vidfast's embed behavior.
             url = `https://vidfast.pro/tv/${currentTMDBShowId}/${currentSeason}/${currentEpisode}?nextButton=true&autoNext=true&theme=#1e90ff`;
             if (secondsToStart > 0) {
-                url += `#${secondsToStart}`;
+                url += `#${secondsToStart}`; // Append timestamp for seeking
             }
 
-            // Only add markWatchedTimeout for Vidfast as Rivestream doesn't have time updates
+            // Set a timeout to mark episode as watched after a short duration (e.g., 10 seconds)
+            // This is a heuristic for Vidfast as it doesn't provide fine-grained progress updates.
             window.markWatchedTimeout = setTimeout(() => {
                 let watched = getWatchedCurrentShow();
                 if (!watched[currentSeason]) watched[currentSeason] = [];
                 if (!watched[currentSeason].includes(currentEpisode)) {
                     watched[currentSeason].push(currentEpisode);
                     setWatchedCurrentShow(watched);
-                    renderEpisodeSelect();
-                    renderEpisodeList(false);
+                    renderEpisodeSelect(); // Update watched status in dropdown
+                    renderEpisodeList(false); // Update watched status in episode cards
                 }
-            }, 10000);
+            }, 10000); // Mark as watched after 10 seconds
         } else if (currentServer === "rivestream") {
-            // Corrected Rivestream URL to use &agg= as a query parameter and added &muted=1 for autoplay
-            // Aggregator is always 32 for Rivestream as per new requirement
+            // Construct Rivestream URL with hardcoded aggregator 32 and autoplay enabled
+            // `muted=1` is typically required for autoplay to work in browsers.
             url = `https://rivestream.org/embed?type=tv&id=${currentTMDBShowId}&season=${currentSeason}&episode=${currentEpisode}&agg=32&autoplay=true&muted=1`;
 
-            // For Rivestream, mark as watched immediately since there's no direct progress tracking.
+            // For Rivestream, mark as watched immediately since there's no direct progress tracking from their embed.
             let watched = getWatchedCurrentShow();
             if (!watched[currentSeason]) watched[currentSeason] = [];
             if (!watched[currentSeason].includes(currentEpisode)) {
                 watched[currentSeason].push(currentEpisode);
                 setWatchedCurrentShow(watched);
-                renderEpisodeSelect();
-                renderEpisodeList(false);
+                renderEpisodeSelect(); // Update watched status in dropdown
+                renderEpisodeList(false); // Update watched status in episode cards
             }
         }
 
+        // Set the iframe source if it's different from the current source
         if (videoPlayer.src !== url) videoPlayer.src = url;
     }
 
-    // Server Selection Modal Logic
+    // --- Server Selection Modal Logic ---
+
+    // Open server selection modal
     serverBtn.addEventListener('click', () => {
-        // Set initial state of radio buttons
+        // Set initial state of radio buttons based on currentServer
         if (currentServer === "vidfast") {
             serverVidfastRadio.checked = true;
-            aggregatorInfoDiv.style.display = 'none';
-        } else {
+            aggregatorInfoDiv.style.display = 'none'; // Hide aggregator info for Vidfast
+        } else { // rivestream
             serverRivestreamRadio.checked = true;
-            aggregatorInfoDiv.style.display = 'block';
-            // Since aggregator is always 32 now, no need to check or set radio
+            aggregatorInfoDiv.style.display = 'block'; // Show aggregator info for Rivestream
         }
-        serverSelectionModalOverlay.classList.add('visible');
+        serverSelectionModalOverlay.classList.add('visible'); // Make modal visible
     });
 
+    // Handle change for Vidfast radio button
     serverVidfastRadio.addEventListener('change', () => {
         if (serverVidfastRadio.checked) {
             aggregatorInfoDiv.style.display = 'none';
         }
     });
 
+    // Handle change for Rivestream radio button
     serverRivestreamRadio.addEventListener('change', () => {
         if (serverRivestreamRadio.checked) {
             aggregatorInfoDiv.style.display = 'block';
         }
     });
 
+    // Save selected server and update video player
     saveServerSelectionBtn.addEventListener('click', () => {
         const selectedServer = document.querySelector('input[name="server"]:checked').value;
-        let newAggregator = "32"; // Always 32 for Rivestream now
+        let newAggregator = "32"; // Aggregator is always 32 for Rivestream now
 
+        // Only update if server or aggregator (for Rivestream) has changed
         if (currentServer !== selectedServer || (selectedServer === "rivestream" && currentRivestreamAggregator !== newAggregator)) {
             currentServer = selectedServer;
-            currentRivestreamAggregator = newAggregator; // Update aggregator to 32
+            currentRivestreamAggregator = newAggregator; // Update aggregator
             localStorage.setItem(LAST_SERVER_KEY, currentServer);
             localStorage.setItem(LAST_AGGREGATOR_KEY, currentRivestreamAggregator);
-            updateVideoPlayer(false); // Reload video with new server/aggregator
+            updateVideoPlayer(false); // Reload video with new server/aggregator settings
         }
-        serverSelectionModalOverlay.classList.remove('visible');
+        serverSelectionModalOverlay.classList.remove('visible'); // Hide modal
     });
 
+    // Cancel server selection
     cancelServerSelectionBtn.addEventListener('click', () => {
-        serverSelectionModalOverlay.classList.remove('visible');
+        serverSelectionModalOverlay.classList.remove('visible'); // Hide modal
     });
 
+    // --- Clear All Data Functionality ---
+
+    // Event listener for clear data button
     document.getElementById('clearDataBtn').addEventListener('click', () => {
         showCustomModal('Are you sure you want to clear all data? This cannot be undone.', 'confirm', (response) => {
             if (response) {
+                // Iterate through local storage and remove relevant keys
                 Object.keys(localStorage).forEach(key => {
                     if (key.startsWith('tvShow') || key.startsWith('lastActive') || key.startsWith(MANUAL_PROGRESS_KEY_PREFIX)) {
                         localStorage.removeItem(key);
                     }
                 });
-                videoPlayer.src = 'about:blank';
-                currentTMDBShowId = 2288; // Reset to default Prison Break ID
-                currentTMDBShowName = "Prison Break"; // Reset to default Prison Break Name
+                videoPlayer.src = 'about:blank'; // Clear video player
+                // Reset to default show and server settings
+                currentTMDBShowId = 2288; // Default to Prison Break ID
+                currentTMDBShowName = "Prison Break"; // Default to Prison Break Name
                 currentServer = "rivestream"; // Default to Rivestream for ad-free experience
                 currentRivestreamAggregator = "32"; // Reset aggregator to default
-                fetchEpisodeData();
+                fetchEpisodeData(); // Re-fetch data for the default show
                 showCustomModal('All local data has been cleared.', 'alert');
             }
         });
     });
 
+    // --- Load More / Show Less Episodes ---
+
+    // Event listener for "Load More" button
     loadMoreBtn.addEventListener('click', () => {
-        isShowingAllEpisodes = true;
-        renderEpisodeList(false);
-    });
-    showLessBtn.addEventListener('click', () => {
-        isShowingAllEpisodes = false;
-        renderEpisodeList(true);
+        isShowingAllEpisodes = true; // Set flag to show all episodes
+        renderEpisodeList(false); // Re-render without full refresh (just append remaining)
     });
 
+    // Event listener for "Show Less" button
+    showLessBtn.addEventListener('click', () => {
+        isShowingAllEpisodes = false; // Set flag to show only a window of episodes
+        renderEpisodeList(true); // Full refresh to show only the windowed view
+    });
+
+    // --- TV Show Search Functionality ---
+
+    /**
+     * Performs a TV show search using the TMDB API.
+     * @param {string} query - The search query.
+     */
     async function searchShows(query) {
         searchResultsDiv.innerHTML = `<div class="loading-indicator"><div class="loading-spinner"></div><span>Searching...</span></div>`;
-        searchResultsDiv.style.display = 'block';
+        searchResultsDiv.style.display = 'block'; // Show loading indicator
         if (!TMDB_READ_TOKEN) {
             searchResultsDiv.innerHTML = `<p style="color: var(--red-primary);">TMDB API Token is missing. Please provide a valid TMDB API key or read access token.</p>`;
             return;
@@ -1470,15 +1630,19 @@
             });
             if (!response.ok) throw new Error(`Search failed: ${response.statusText}`);
             const data = await response.json();
-            displaySearchResults(data.results);
+            displaySearchResults(data.results); // Display search results
         } catch (error) {
             console.error('Error searching shows:', error);
             searchResultsDiv.innerHTML = `<p style="color: var(--red-primary);">Error: ${error.message}.</p>`;
         }
     }
 
+    /**
+     * Displays the search results in a list.
+     * @param {Array<Object>} results - An array of TV show objects from TMDB.
+     */
     function displaySearchResults(results) {
-        searchResultsDiv.innerHTML = '';
+        searchResultsDiv.innerHTML = ''; // Clear previous results
         if (results.length === 0) {
             searchResultsDiv.innerHTML = '<p style="color: var(--grey-text);">No results found.</p>';
             return;
@@ -1486,28 +1650,38 @@
         results.forEach(show => {
             const resultItem = document.createElement('div');
             resultItem.className = 'search-result-item';
-            resultItem.innerHTML = `<h4>${show.name}</h4>`;
+            resultItem.innerHTML = `<h4>${show.name}</h4>`; // Display show name
             resultItem.addEventListener('click', () => {
+                // Set current show details and save to local storage
                 currentTMDBShowId = show.id;
                 currentTMDBShowName = show.name;
                 localStorage.setItem(LAST_SHOW_ID_KEY, currentTMDBShowId);
-                localStorage.setItem(LAST_SHOW_NAME_KEY, currentTMDBShowName);
-                searchResultsDiv.style.display = 'none';
-                showSearchInput.value = '';
-                fetchEpisodeData();
+                localStorage.setItem(LAST_SHOW_NAME_KEY, currentTMDBShowName); // Use corrected key
+                searchResultsDiv.style.display = 'none'; // Hide search results
+                showSearchInput.value = ''; // Clear search input
+                fetchEpisodeData(); // Load data for the newly selected show
             });
             searchResultsDiv.appendChild(resultItem);
         });
     }
 
+    // Event listeners for search input and button
     searchShowBtn.addEventListener('click', () => searchShows(showSearchInput.value.trim()));
     showSearchInput.addEventListener('keypress', (event) => {
-        if (event.key === 'Enter') searchShowBtn.click();
+        if (event.key === 'Enter') searchShowBtn.click(); // Trigger search on Enter key
     });
 
+    // --- Initial Application Load ---
+
+    /**
+     * Initializes the application when the DOM is fully loaded.
+     * Retrieves last active show and server from local storage or sets defaults.
+     * Then fetches episode data for the selected show.
+     */
     document.addEventListener('DOMContentLoaded', () => {
         const storedShowId = localStorage.getItem(LAST_SHOW_ID_KEY);
-        const storedShowName = localStorage.getItem(LAST_SHOW_NAME_KEY);
+        // FIX: Read from the corrected LAST_SHOW_NAME_KEY
+        const storedShowName = localStorage.getItem(LAST_SHOW_NAME_KEY); 
         const storedServer = localStorage.getItem(LAST_SERVER_KEY);
         const storedAggregator = localStorage.getItem(LAST_AGGREGATOR_KEY);
 
@@ -1515,26 +1689,28 @@
             currentTMDBShowId = parseInt(storedShowId);
             currentTMDBShowName = storedShowName;
         } else {
-            currentTMDBShowId = 2288; // Default to Prison Break
+            // Default to Prison Break if no last active show is stored
+            currentTMDBShowId = 2288;
             currentTMDBShowName = "Prison Break";
         }
 
         if (storedServer) {
             currentServer = storedServer;
         } else {
-            currentServer = "rivestream"; // Default to Rivestream for ad-free experience
+            // Default to Rivestream for ad-free experience if no server is stored
+            currentServer = "rivestream";
         }
 
-        // Aggregator is now always 32 for Rivestream in the UI/logic
-        // So, we only need to set it if Rivestream is the current server.
+        // Aggregator is now always 32 for Rivestream in the UI/logic.
+        // This ensures consistency even if an old aggregator value was stored.
         if (currentServer === "rivestream") {
             currentRivestreamAggregator = "32";
         } else {
-            currentRivestreamAggregator = "32"; // Keep default for other servers, though it won't be used
+            // Keep default for other servers, though it won't be used by them.
+            currentRivestreamAggregator = "32"; 
         }
 
-
-        fetchEpisodeData();
+        fetchEpisodeData(); // Start by fetching episode data for the determined show
     });
 </script>
 
